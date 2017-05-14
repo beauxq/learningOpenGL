@@ -14,12 +14,16 @@ set(SOURCE_FILES
         oge/OGLSystem.h
         oge/Scene.cpp
         oge/Scene.h
+        oge/Light.cpp
+        oge/Light.h
         ControlledObject.cpp
         ControlledObject.h
         Follower.cpp
         Follower.h
         BackgroundObject.cpp
-        BackgroundObject.h MainScene.cpp MainScene.h)
+        BackgroundObject.h
+        MainScene.cpp
+        MainScene.h)
 add_executable(newerOpenGLTest ${SOURCE_FILES})
 
 find_package(OpenGL)

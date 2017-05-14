@@ -131,6 +131,8 @@ void oge::OGLSystem::initializeShaders() {
     colorProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("LightPosition_worldspace", sf::Glsl::Vec3(0, 0, 0));
+    colorProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
+    colorProgram.setUniform("LightPower", 0.0f);
 
 
     // different program for textured objects
@@ -139,6 +141,8 @@ void oge::OGLSystem::initializeShaders() {
     textureProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("LightPosition_worldspace", sf::Glsl::Vec3(0, 0, 0));
+    textureProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
+    textureProgram.setUniform("LightPower", 0.0f);
 
     sf::Texture myDummyTexture;
 

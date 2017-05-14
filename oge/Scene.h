@@ -16,6 +16,7 @@
 #include <unordered_set>
 
 #include "Camera.h"
+#include "Light.h"
 
 namespace oge {
 
@@ -49,6 +50,7 @@ namespace oge {
         OGLSystem* system;
 
         Camera camera;
+        Light light;
 
         std::unordered_set< SceneObject, SceneObject::hash > objects;
 
@@ -58,8 +60,10 @@ namespace oge {
         OGLSystem*& getSystem();
 
         Camera& getCamera();
-
         void setCamera(const Camera& _camera);
+
+        Light& getLight();
+        void setLight(const Light& _light);
 
         void setBackGroundColor(const glm::vec4 &_color);
 

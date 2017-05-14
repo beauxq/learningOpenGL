@@ -14,13 +14,11 @@ out vec3 color;
 uniform sampler2D myTextureSampler;
 uniform mat4 MV;
 uniform vec3 LightPosition_worldspace;
+// Light emission properties
+uniform vec3 LightColor;
+uniform float LightPower;
 
 void main(){
-
-	// Light emission properties
-	// TODO: You probably want to put them as uniforms
-	vec3 LightColor = vec3(1,1,1);
-	float LightPower = 30000.0f;
 	
 	// Material properties
 	vec3 MaterialDiffuseColor = texture( myTextureSampler, UV ).rgb;

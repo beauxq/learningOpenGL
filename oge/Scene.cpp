@@ -30,6 +30,11 @@ void oge::Scene::initialize() {
     camera.distanceFromFocusPoint = 4.0f;
     camera.directionFromFocusPoint = glm::vec3(0, 0, 1);
     camera.upDirection = glm::vec3(0, 1, 0);
+
+    // TODO: put defaults in constants
+    light.setPosition(sf::Glsl::Vec3(-30.0f, 150.0f, 45.0f));
+    light.setColor(sf::Glsl::Vec3(1, 1, 1));
+    light.setPower(30000.0f);
 }
 
 oge::OGLSystem*& oge::Scene::getSystem() {
@@ -42,6 +47,14 @@ oge::Camera& oge::Scene::getCamera() {
 
 void oge::Scene::setCamera(const Camera& _camera) {
     camera = _camera;
+}
+
+oge::Light& oge::Scene::getLight() {
+    return light;
+}
+
+void oge::Scene::setLight(const Light& _light) {
+    light = _light;
 }
 
 void oge::Scene::setBackGroundColor(const glm::vec4& _color) {

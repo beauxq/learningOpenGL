@@ -10,6 +10,7 @@
 
 
 namespace oge {
+    // forward declaration
     class OGLSystem;
 
     class Camera {
@@ -27,7 +28,6 @@ namespace oge {
         Camera(OGLSystem* oglSystem);
 
         glm::vec3 getCameraLocation() const;
-
         void setCameraLocation(const glm::vec3& loc);
 
         /** for MVP */

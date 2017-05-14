@@ -254,7 +254,9 @@ void oge::OGLObject::draw(const Camera &camera, sf::Shader& mvpShader) {
     // TODO: move this light somewhere more appropriate
     // (both architecturally and in coordinates
     sf::Glsl::Vec3 lightPos(-30.0f, 150.0f, 45.0f);
-    mvpShader.setUniform("LightPosition_worldspace", lightPos);
+    mvpShader.setUniform("LightPosition_worldspace", scene->getLight().getPosition());
+    mvpShader.setUniform("LightColor", scene->getLight().getColor());
+    mvpShader.setUniform("LightPower", scene->getLight().getPower());
 
 
     // assume attribute/buffer 0 is triangle vertices
