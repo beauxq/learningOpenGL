@@ -1,0 +1,13 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+// location = same number as in glVertexAttribPointer
+layout(location = 0) in vec3 vertexPosition_modelspace;
+
+void main(){
+    // every vertex shader must assign some value to gl_Position
+    gl_Position.xyz = vertexPosition_modelspace;
+    gl_Position.w = 1.0;
+
+}
+

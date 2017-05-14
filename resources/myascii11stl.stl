@@ -1,0 +1,142 @@
+solid geodesic_sphere
+  facet normal 0.470279 0.760884 0.341678
+    outer loop
+      vertex 1.2764 1.44717 1.85067
+      vertex 1.89445 1.44717 1
+      vertex 1 2 1
+    endloop
+  endfacet
+  facet normal -0.179631 0.760884 0.552846
+    outer loop
+      vertex 0.276375 1.44717 1.52574
+      vertex 1.2764 1.44717 1.85067
+      vertex 1 2 1
+    endloop
+  endfacet
+  facet normal -0.581297 0.760884 -3.80442e-007
+    outer loop
+      vertex 0.276375 1.44717 0.474255
+      vertex 0.276375 1.44717 1.52574
+      vertex 1 2 1
+    endloop
+  endfacet
+  facet normal -0.17963 0.760884 -0.552846
+    outer loop
+      vertex 1.2764 1.44717 0.149327
+      vertex 0.276375 1.44717 0.474255
+      vertex 1 2 1
+    endloop
+  endfacet
+  facet normal 0.470279 0.760884 -0.341678
+    outer loop
+      vertex 1.89445 1.44717 1
+      vertex 1.2764 1.44717 0.149327
+      vertex 1 2 1
+    endloop
+  endfacet
+  facet normal 0.760787 0.179621 0.552744
+    outer loop
+      vertex 1.2764 1.44717 1.85067
+      vertex 1.72362 0.552832 1.52574
+      vertex 1.89445 1.44717 1
+    endloop
+  endfacet
+  facet normal -0.290595 0.17962 0.894358
+    outer loop
+      vertex 0.276375 1.44717 1.52574
+      vertex 0.7236 0.552832 1.85067
+      vertex 1.2764 1.44717 1.85067
+    endloop
+  endfacet
+  facet normal -0.940385 0.17962 -3.80403e-007
+    outer loop
+      vertex 0.276375 1.44717 0.474255
+      vertex 0.10555 0.552832 1
+      vertex 0.276375 1.44717 1.52574
+    endloop
+  endfacet
+  facet normal -0.290594 0.17962 -0.894358
+    outer loop
+      vertex 1.2764 1.44717 0.149327
+      vertex 0.7236 0.552832 0.149327
+      vertex 0.276375 1.44717 0.474255
+    endloop
+  endfacet
+  facet normal 0.760787 0.179621 -0.552744
+    outer loop
+      vertex 1.89445 1.44717 1
+      vertex 1.72362 0.552832 0.474255
+      vertex 1.2764 1.44717 0.149327
+    endloop
+  endfacet
+  facet normal 0.290594 -0.17962 0.894358
+    outer loop
+      vertex 1.2764 1.44717 1.85067
+      vertex 0.7236 0.552832 1.85067
+      vertex 1.72362 0.552832 1.52574
+    endloop
+  endfacet
+  facet normal -0.760787 -0.179621 -0.552744
+    outer loop
+      vertex 0.276375 1.44717 0.474255
+      vertex 0.7236 0.552832 0.149327
+      vertex 0.10555 0.552832 1
+    endloop
+  endfacet
+  facet normal 0.290594 -0.17962 -0.894358
+    outer loop
+      vertex 1.2764 1.44717 0.149327
+      vertex 1.72362 0.552832 0.474255
+      vertex 0.7236 0.552832 0.149327
+    endloop
+  endfacet
+  facet normal 0.940385 -0.179621 0
+    outer loop
+      vertex 1.89445 1.44717 1
+      vertex 1.72362 0.552832 1.52574
+      vertex 1.72362 0.552832 0.474255
+    endloop
+  endfacet
+  facet normal -0.760787 -0.17962 0.552745
+    outer loop
+      vertex 0.276375 1.44717 1.52574
+      vertex 0.10555 0.552832 1
+      vertex 0.7236 0.552832 1.85067
+    endloop
+  endfacet
+  facet normal 0.17963 -0.760884 0.552846
+    outer loop
+      vertex 0.7236 0.552832 1.85067
+      vertex 1 0 1
+      vertex 1.72362 0.552832 1.52574
+    endloop
+  endfacet
+  facet normal -0.470279 -0.760884 0.341678
+    outer loop
+      vertex 0.10555 0.552832 1
+      vertex 1 0 1
+      vertex 0.7236 0.552832 1.85067
+    endloop
+  endfacet
+  facet normal -0.470279 -0.760884 -0.341678
+    outer loop
+      vertex 0.7236 0.552832 0.149327
+      vertex 1 0 1
+      vertex 0.10555 0.552832 1
+    endloop
+  endfacet
+  facet normal 0.17963 -0.760884 -0.552846
+    outer loop
+      vertex 1.72362 0.552832 0.474255
+      vertex 1 0 1
+      vertex 0.7236 0.552832 0.149327
+    endloop
+  endfacet
+  facet normal 0.581297 -0.760884 0
+    outer loop
+      vertex 1.72362 0.552832 1.52574
+      vertex 1 0 1
+      vertex 1.72362 0.552832 0.474255
+    endloop
+  endfacet
+endsolid geodesic_sphere
