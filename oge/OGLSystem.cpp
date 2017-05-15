@@ -82,8 +82,7 @@ void oge::OGLSystem::initialize() {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "error: check framebuffer status failed\n";
 
-
-
+    window.setActive();
 
     initializeShaders();
 
@@ -133,8 +132,6 @@ void oge::OGLSystem::loop() {
             scenes[currentScene]->draw();
         }
         window.display();
-
-        std::cerr << "after window display isVAO: " << 1 << ", " << glIsVertexArray(1) << std::endl;
     }
 }
 

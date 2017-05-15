@@ -250,12 +250,8 @@ void oge::OGLObject::draw(const glm::mat4& projectionMatrix,
                           sf::Shader& mvpShader,
                           bool shadowMap /* = false */) {
 
-    GLint currentFBID;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBID);
-    std::cerr << "current FrameBuffer binding before glBindVertexArray: " << currentFBID << std::endl;
 
     glBindVertexArray(vertexArrayObjectID);
-    std::cerr << "after bind call isVAO: " << vertexArrayObjectID << ", " << glIsVertexArray(vertexArrayObjectID) << std::endl;
 
     // calculate new mvp matrix
     // model, then view, then projection

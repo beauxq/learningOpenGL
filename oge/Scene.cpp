@@ -106,7 +106,10 @@ void oge::Scene::draw() {
         object.object->draw(projectionMatrix, viewMatrix, system->getCreateShadowMapProgram(), true);
     }
 
-    // system->getShadowMap().display();  // update the texture in memory
+    // TODO: if we don't need display() then get rid of these
+    system->getShadowMap().display();  // update the texture in memory
+    // display activates new context, so back to original
+    system->getWindow().setActive();
 
 
     // now the image to the screen
@@ -143,6 +146,7 @@ void oge::Scene::draw() {
 
         object.object->draw(camera.projection, camera.getViewMatrix(), *(object.program));
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void oge::Scene::registerObject(oge::OGLObject& object, sf::Shader& program) {
