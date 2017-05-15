@@ -196,12 +196,19 @@ bool oge::OGLObject::loadFromFile(const std::string &filename) {
 }
 
 void oge::OGLObject::loadTextureFromFile(const std::string& filename) {
-    surfaceColorTexture.loadFromFile(filename);
-    surfaceColorTexture.setSmooth(true);  // TODO: make this optional?
-}
+    sf::Image image;
+    if (! image.loadFromFile(filename)) {
+        std::cerr << "error: failed to load texture from file " << filename << std::endl;
+        return;
+    }
 
-sf::Texture& oge::OGLObject::getSurfaceColorTexture() {
-    return surfaceColorTexture;
+    deleteTexture();
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.getSize().x, image.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 void oge::OGLObject::createVAO() {
@@ -289,15 +296,23 @@ void oge::OGLObject::draw(const glm::mat4& projectionMatrix,
                                                                             scene->getLightInvDir()[1],
                                                                             scene->getLightInvDir()[2]));
         if (&mvpShader == &(scene->getSystem()->getTextureProgram())) {
+            // shadow map texture to texture unit 1
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, scene->getSystem()->depthTexture);
             glUniform1i(scene->getSystem()->ShadowMapIDTexture, 1);
-            mvpShader.setUniform("myTextureSampler", surfaceColorTexture);
+            // surface color texture to texture unit 0
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glUniform1i(scene->getSystem()->TextureIDTexture, 0);
         }
         else {  // color program
+            // shadow map texture to texture unit 1
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, scene->getSystem()->depthTexture);
             glUniform1i(scene->getSystem()->ShadowMapIDColor, 1);
+            // clear texture unit 0
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
     }
     // texture uniforms are not set until bind is called
@@ -347,9 +362,17 @@ void oge::OGLObject::deleteAllBuffers() {
     }
 }
 
+void oge::OGLObject::deleteTexture() {
+    if (textureID) {
+        glDeleteTextures(1, &textureID);
+        textureID = 0;
+    }
+}
+
 oge::OGLObject::~OGLObject() {
     std::cout << "info: OGLObject destructor called\n";
     deleteAllBuffers();
+    deleteTexture();
     deleteVAO();
 }
 

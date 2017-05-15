@@ -46,7 +46,8 @@ namespace oge {
         //  openGL VAO ID
         GLuint vertexArrayObjectID;
         std::vector<Buffer> buffers;
-        sf::Texture surfaceColorTexture;
+        // sf::Texture surfaceColorTexture;
+        GLuint textureID;
 
         static bool beginsWith(const std::string &string, const std::string &beginning);
 
@@ -70,6 +71,9 @@ namespace oge {
         void deleteBuffer(GLuint *bufferIDPtr);
 
         void deleteAllBuffers();
+
+        /** checks for textureID and deletes it from OpenGL */
+        void deleteTexture();
 
     public:
         OGLObject(Scene& _scene);
@@ -105,7 +109,8 @@ namespace oge {
         bool loadFromFile(const std::string& filename);
 
         void loadTextureFromFile(const std::string& filename);
-        sf::Texture& getSurfaceColorTexture();
+        // sf::Texture& getSurfaceColorTexture();
+        // TODO: getter for texture handle
 
         void uploadData();
 

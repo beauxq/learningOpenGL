@@ -139,7 +139,7 @@ void oge::OGLSystem::loop() {
                 _keyIsDown[event.key.code] = false;
             }
 
-            if (currentScene != -1) {
+            if (currentScene != -1) {  // TODO: I think I made it so currentScene can't be -1
                 scenes[currentScene]->handleEvent(event);
             }
 
@@ -160,7 +160,7 @@ void oge::OGLSystem::loop() {
 
 void oge::OGLSystem::initializeShaders() {
     glm::mat4 myDummyFloatMatrix;  // need the address of a float in memory to reserve uniform
-    sf::Texture myDummyTexture;
+    // sf::Texture myDummyTexture;
 
     // Create and compile our GLSL program from the shaders
 
@@ -217,7 +217,8 @@ void oge::OGLSystem::initializeShaders() {
     textureProgram.setUniform("LightPower", 0.0f);
     colorProgram.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(0, 0, 0));
 
-    textureProgram.setUniform("myTextureSampler", myDummyTexture);
+    //textureProgram.setUniform("myTextureSampler", myDummyTexture);
+    TextureIDTexture = glGetUniformLocation(textureProgram.getNativeHandle(), "myTextureSampler");
 
     std::cout << "loaded shaders from files and reserved uniforms\n";
     std::cout << "shadow map ids: color: " << ShadowMapIDColor << "  texture: " << ShadowMapIDTexture << std::endl;

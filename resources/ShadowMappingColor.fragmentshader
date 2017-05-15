@@ -78,7 +78,7 @@ void main(){
 	float visibility=1.0;
 
 	// Fixed bias, or...
-	float bias = 0.005;
+	float bias = 0.0011;
 
 	// ...variable bias
 	// float bias = 0.005*tan(acos(cosTheta));

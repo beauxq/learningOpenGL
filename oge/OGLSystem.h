@@ -27,6 +27,7 @@ namespace oge {
         GLuint depthTexture;  // opengl handle
         GLuint ShadowMapIDColor;  // uniform handle "shadowMap" color shader
         GLuint ShadowMapIDTexture;  // uniform handle "shadowMap" texture shader
+        GLuint TextureIDTexture;
     private:
 
         sf::Shader createShadowMapProgram;
