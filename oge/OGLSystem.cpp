@@ -65,12 +65,35 @@ void oge::OGLSystem::initialize() {
 
 
     // shadow map framebuffer
+    // sfml way?
+    /*
     shadowMap.create(1024, 1024, true);
     if (! shadowMap.getTexture().getNativeHandle()) {
         std::cerr << "error: shadowMap has no native handle\n";
     }
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &shadowMapFrameBufferID);
     std::cout << "current FrameBuffer binding after creating shadowmap: " << shadowMapFrameBufferID << std::endl;
+     */
+
+    // opengl tutorial way
+    // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+    glGenFramebuffers(1, &FramebufferName);
+    glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
+    // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
+    glGenTextures(1, &depthTexture);
+    glBindTexture(GL_TEXTURE_2D, depthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+
+
     // No color output in the bound framebuffer, only depth.
     glDrawBuffer(GL_NONE);
     // We don't use bias in the shader, but instead we draw back faces,
@@ -82,7 +105,7 @@ void oge::OGLSystem::initialize() {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "error: check framebuffer status failed\n";
 
-    window.setActive();
+    // window.setActive();
 
     initializeShaders();
 
@@ -172,7 +195,8 @@ void oge::OGLSystem::initializeShaders() {
     colorProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
-    colorProgram.setUniform("shadowMap", myDummyTexture);
+    //colorProgram.setUniform("shadowMap", myDummyTexture);
+    ShadowMapIDColor = glGetUniformLocation(colorProgram.getNativeHandle(), "shadowMap");
     //colorProgram.setUniform("LightPosWorldSpace", sf::Glsl::Vec3(0.0f, 0.0f, 0.0f));
     colorProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
     colorProgram.setUniform("LightPower", 0.0f);
@@ -186,7 +210,8 @@ void oge::OGLSystem::initializeShaders() {
     textureProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
-    textureProgram.setUniform("shadowMap", myDummyTexture);
+    //textureProgram.setUniform("shadowMap", myDummyTexture);
+    ShadowMapIDTexture = glGetUniformLocation(textureProgram.getNativeHandle(), "shadowMap");
     //textureProgram.setUniform("LightPosWorldSpace", sf::Glsl::Vec3(0.0f, 0.0f, 0.0f));
     textureProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
     textureProgram.setUniform("LightPower", 0.0f);
@@ -195,6 +220,7 @@ void oge::OGLSystem::initializeShaders() {
     textureProgram.setUniform("myTextureSampler", myDummyTexture);
 
     std::cout << "loaded shaders from files and reserved uniforms\n";
+    std::cout << "shadow map ids: color: " << ShadowMapIDColor << "  texture: " << ShadowMapIDTexture << std::endl;
 }
 
 bool oge::OGLSystem::leftMouseButtonIsDown() const {
@@ -256,6 +282,7 @@ sf::RenderWindow& oge::OGLSystem::getWindow() {
     return window;
 }
 
+/*
 sf::RenderTexture& oge::OGLSystem::getShadowMap() {
     return shadowMap;
 }
@@ -263,3 +290,4 @@ sf::RenderTexture& oge::OGLSystem::getShadowMap() {
 const GLint& oge::OGLSystem::getShadowMapFrameBufferID() const {
     return shadowMapFrameBufferID;
 }
+*/

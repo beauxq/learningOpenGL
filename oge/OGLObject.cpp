@@ -283,12 +283,21 @@ void oge::OGLObject::draw(const glm::mat4& projectionMatrix,
         mvpShader.setUniform("LightColor", scene->getLight().getColor());
         mvpShader.setUniform("LightPower", scene->getLight().getPower());
         mvpShader.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&depthBiasMVP[0][0]));
-        mvpShader.setUniform("shadowMap", scene->getSystem()->getShadowMap().getTexture());
+        //mvpShader.setUniform("shadowMap", scene->getSystem()->depthTexture);
+
         mvpShader.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(scene->getLightInvDir()[0],
                                                                             scene->getLightInvDir()[1],
                                                                             scene->getLightInvDir()[2]));
         if (&mvpShader == &(scene->getSystem()->getTextureProgram())) {
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, scene->getSystem()->depthTexture);
+            glUniform1i(scene->getSystem()->ShadowMapIDTexture, 1);
             mvpShader.setUniform("myTextureSampler", surfaceColorTexture);
+        }
+        else {  // color program
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, scene->getSystem()->depthTexture);
+            glUniform1i(scene->getSystem()->ShadowMapIDColor, 1);
         }
     }
     // texture uniforms are not set until bind is called

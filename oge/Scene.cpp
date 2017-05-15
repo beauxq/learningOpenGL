@@ -34,7 +34,7 @@ void oge::Scene::initialize() {
     // TODO: put defaults in constants
     light.setPosition(sf::Glsl::Vec3(-30.0f, 150.0f, 45.0f));
     light.setColor(sf::Glsl::Vec3(1, 1, 1));
-    light.setPower(4.0f);
+    light.setPower(1.0f);
 }
 
 oge::OGLSystem*& oge::Scene::getSystem() {
@@ -80,8 +80,8 @@ void oge::Scene::handleEvent(const sf::Event& event) {
 void oge::Scene::draw() {
     // create shadow map
 
-    glBindFramebuffer(GL_FRAMEBUFFER, system->getShadowMapFrameBufferID());
-    glViewport(0,0,1024,1024);
+    glBindFramebuffer(GL_FRAMEBUFFER, system->FramebufferName);
+    glViewport(0,0,1024,1024);  // TODO: magic numbers
 
     // Clear the screen
     // glClear( GL_COLOR_BUFFER_BIT );
@@ -94,7 +94,7 @@ void oge::Scene::draw() {
                             light.getPosition().y,
                             light.getPosition().z) -
                   camera.focusPoint;  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
-    glm::mat4 projectionMatrix = glm::ortho<float>(-10,10,-10,10,-10,20);  // TODO: compute these numbers from the camera
+    glm::mat4 projectionMatrix = glm::ortho<float>(-100,100,-40,40,-10,300);  // TODO: compute these numbers from the camera
     glm::mat4 viewMatrix = glm::lookAt(lightInvDir, camera.focusPoint, camera.upDirection);
     // TODO: make option for spot light :
     //glm::vec3 lightPos(5, 20, 20);
@@ -107,9 +107,22 @@ void oge::Scene::draw() {
     }
 
     // TODO: if we don't need display() then get rid of these
-    system->getShadowMap().display();  // update the texture in memory
+    //system->getShadowMap().display();  // update the texture in memory
     // display activates new context, so back to original
-    system->getWindow().setActive();
+    //system->getWindow().setActive();
+
+
+    // testing
+    /*
+    sf::Image imageAfterCreateShadowMap(system->getShadowMap().getTexture().copyToImage());
+    imageAfterCreateShadowMap.saveToFile("resources/imageOut.bmp");
+    std::cout << "size: " << imageAfterCreateShadowMap.getSize().x << ", " << imageAfterCreateShadowMap.getSize().y << std::endl;
+    sf::Color pixel = imageAfterCreateShadowMap.getPixel(0, 0);
+    std::cout << "0, 0: " << pixel.r << ' ' << pixel.g << ' ' << pixel.b << ' ' << pixel.a << std::endl;
+    // found no color data "0, 0: [nothing]"
+
+    exit(2);
+     */
 
 
     // now the image to the screen
@@ -146,7 +159,7 @@ void oge::Scene::draw() {
 
         object.object->draw(camera.projection, camera.getViewMatrix(), *(object.program));
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  // TODO: probably don't need this
 }
 
 void oge::Scene::registerObject(oge::OGLObject& object, sf::Shader& program) {

@@ -25,6 +25,7 @@ void ControlledObject::handleEvent(const sf::Event& event) {
             translate(xDiff * 0.002f * getScene()->getCamera().distanceFromFocusPoint,
                       yDiff * -0.002f * getScene()->getCamera().distanceFromFocusPoint,
                       0);
+            std::cout << getLocation().x << ' ' << getLocation().y << std::endl;
         }
     }
 }

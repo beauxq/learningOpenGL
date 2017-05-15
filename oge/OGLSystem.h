@@ -20,8 +20,14 @@ namespace oge {
     class OGLSystem {
     private:
         sf::RenderWindow window;  // TODO: change this to RenderWindow if we want to do any SFML drawing
-        sf::RenderTexture shadowMap;  // TODO: I don't know if this needs to be "Render" (if not using sfml drawing)
-        GLint shadowMapFrameBufferID;
+        //sf::RenderTexture shadowMap;  // TODO: I don't know if this needs to be "Render" (if not using sfml drawing)
+        //GLint shadowMapFrameBufferID;
+    public:  // TODO: private with getter
+        GLuint FramebufferName;  // opengl handle
+        GLuint depthTexture;  // opengl handle
+        GLuint ShadowMapIDColor;  // uniform handle "shadowMap" color shader
+        GLuint ShadowMapIDTexture;  // uniform handle "shadowMap" texture shader
+    private:
 
         sf::Shader createShadowMapProgram;
         sf::Shader colorProgram;
@@ -50,8 +56,10 @@ namespace oge {
                       emptyScene(*this) {}
 
         sf::RenderWindow& getWindow();
+        /*
         sf::RenderTexture& getShadowMap();
         const GLint& getShadowMapFrameBufferID() const;
+         */
 
         sf::Shader& getColorProgram();
         sf::Shader& getTextureProgram();
