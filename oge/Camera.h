@@ -17,7 +17,7 @@ namespace oge {
     public:  // TODO: make private and make getters and setters where needed
         glm::vec3 focusPoint;
         float distanceFromFocusPoint;
-        glm::vec3 directionFromFocusPoint;
+        glm::vec3 directionFromFocusPoint;  // normalized
         glm::vec3 upDirection;
 
         glm::mat4 projection;

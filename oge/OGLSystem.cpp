@@ -9,6 +9,7 @@
 #include "Scene.h"
 
 void oge::OGLSystem::initialize() {
+    // main window
     sf::ContextSettings contextSettings;
     contextSettings.depthBits = 32;
     contextSettings.majorVersion = 3;
@@ -55,6 +56,34 @@ void oge::OGLSystem::initialize() {
     // only draw triangles that face the camera
     // (right-hand rule default - there's a setting that can change it to left-hand)
     glEnable(GL_CULL_FACE);
+
+
+
+    GLint currentFBID;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBID);
+    std::cout << "current FrameBuffer binding before creating shadowmap: " << currentFBID << std::endl;
+
+
+    // shadow map framebuffer
+    shadowMap.create(1024, 1024, true);
+    if (! shadowMap.getTexture().getNativeHandle()) {
+        std::cerr << "error: shadowMap has no native handle\n";
+    }
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &shadowMapFrameBufferID);
+    std::cout << "current FrameBuffer binding after creating shadowmap: " << shadowMapFrameBufferID << std::endl;
+    // No color output in the bound framebuffer, only depth.
+    glDrawBuffer(GL_NONE);
+    // We don't use bias in the shader, but instead we draw back faces,
+    // which are already separated from the front faces by a small distance
+    // (if your geometry is made this way)
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+    // check that our framebuffer is ok
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "error: check framebuffer status failed\n";
+
+
+
 
     initializeShaders();
 
@@ -103,25 +132,40 @@ void oge::OGLSystem::loop() {
             scenes[currentScene]->update();
             scenes[currentScene]->draw();
         }
-
         window.display();
+
+        std::cerr << "after window display isVAO: " << 1 << ", " << glIsVertexArray(1) << std::endl;
     }
 }
 
 void oge::OGLSystem::initializeShaders() {
     glm::mat4 myDummyFloatMatrix;  // need the address of a float in memory to reserve uniform
+    sf::Texture myDummyTexture;
 
     // Create and compile our GLSL program from the shaders
 
+
+    // program to create shadow map
+    sf::Shader::bind(&createShadowMapProgram);
+    createShadowMapProgram.loadFromFile("resources/CreateShadowMap.vertexshader", "resources/CreateShadowMap.fragmentshader");
+    createShadowMapProgram.setUniform("MVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
+
+
+    // program for colored (not textured) objects
     // loader from tutorial
     // GLuint programID = LoadShaders( "SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader" );
 
     // loader from sfml
-    std::cout << "created shader object\n";
-    colorProgram.loadFromFile("StandardColor.vertexshader", "StandardColor.fragmentshader");
-    std::cout << "loaded shaders from files\n";
+    sf::Shader::bind(&colorProgram);
+    colorProgram.loadFromFile("resources/ShadowMappingColor.vertexshader", "resources/ShadowMappingColor.fragmentshader");
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cerr << "glGetError: " << err << std::endl;
+    }
 
     // reserve a spot for MVP matrix
+    // we reserve at initialization because it's probably faster, haven't tested it
 
     // normal opengl way
     // GLint MatrixID = glGetUniformLocation(colorProgram.getNativeHandle(), "MVP");
@@ -130,23 +174,30 @@ void oge::OGLSystem::initializeShaders() {
     colorProgram.setUniform("MVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     colorProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
-    colorProgram.setUniform("LightPosition_worldspace", sf::Glsl::Vec3(0, 0, 0));
+    colorProgram.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
+    colorProgram.setUniform("shadowMap", myDummyTexture);
+    //colorProgram.setUniform("LightPosWorldSpace", sf::Glsl::Vec3(0.0f, 0.0f, 0.0f));
     colorProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
     colorProgram.setUniform("LightPower", 0.0f);
+    colorProgram.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(0, 0, 0));
 
 
-    // different program for textured objects
-    textureProgram.loadFromFile("StandardTexture.vertexshader", "StandardTexture.fragmentshader");
+    // program for textured objects
+    sf::Shader::bind(&textureProgram);
+    textureProgram.loadFromFile("resources/ShadowMappingTexture.vertexshader", "resources/ShadowMappingTexture.fragmentshader");
     textureProgram.setUniform("MVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("V", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
     textureProgram.setUniform("M", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
-    textureProgram.setUniform("LightPosition_worldspace", sf::Glsl::Vec3(0, 0, 0));
+    textureProgram.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&myDummyFloatMatrix[0][0]));
+    textureProgram.setUniform("shadowMap", myDummyTexture);
+    //textureProgram.setUniform("LightPosWorldSpace", sf::Glsl::Vec3(0.0f, 0.0f, 0.0f));
     textureProgram.setUniform("LightColor", sf::Glsl::Vec3(0, 0, 0));
     textureProgram.setUniform("LightPower", 0.0f);
-
-    sf::Texture myDummyTexture;
+    colorProgram.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(0, 0, 0));
 
     textureProgram.setUniform("myTextureSampler", myDummyTexture);
+
+    std::cout << "loaded shaders from files and reserved uniforms\n";
 }
 
 bool oge::OGLSystem::leftMouseButtonIsDown() const {
@@ -175,8 +226,12 @@ sf::Shader& oge::OGLSystem::getColorProgram() {
     return colorProgram;
 }
 
-sf::Shader &oge::OGLSystem::getTextureProgram() {
+sf::Shader& oge::OGLSystem::getTextureProgram() {
     return textureProgram;
+}
+
+sf::Shader& oge::OGLSystem::getCreateShadowMapProgram() {
+    return createShadowMapProgram;
 }
 
 int oge::OGLSystem::registerScene(oge::Scene& scene, bool makeCurrentScene) {
@@ -200,10 +255,14 @@ void oge::OGLSystem::deleteScene(oge::Scene& scene) {
 
 }
 
-void oge::OGLSystem::setCurrentTexture(sf::Texture &texture) {
-    textureProgram.setUniform("myTextureSampler", texture);
+sf::RenderWindow& oge::OGLSystem::getWindow() {
+    return window;
 }
 
-sf::Window& oge::OGLSystem::getWindow() {
-    return window;
+sf::RenderTexture& oge::OGLSystem::getShadowMap() {
+    return shadowMap;
+}
+
+const GLint& oge::OGLSystem::getShadowMapFrameBufferID() const {
+    return shadowMapFrameBufferID;
 }

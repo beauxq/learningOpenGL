@@ -19,8 +19,11 @@ namespace oge {
 
     class OGLSystem {
     private:
-        sf::Window window;  // TODO: change this to RenderWindow if we want to do any SFML drawing
+        sf::RenderWindow window;  // TODO: change this to RenderWindow if we want to do any SFML drawing
+        sf::RenderTexture shadowMap;  // TODO: I don't know if this needs to be "Render" (if not using sfml drawing)
+        GLint shadowMapFrameBufferID;
 
+        sf::Shader createShadowMapProgram;
         sf::Shader colorProgram;
         sf::Shader textureProgram;
 
@@ -46,11 +49,13 @@ namespace oge {
                       running(true),
                       emptyScene(*this) {}
 
-        sf::Window& getWindow();
+        sf::RenderWindow& getWindow();
+        sf::RenderTexture& getShadowMap();
+        const GLint& getShadowMapFrameBufferID() const;
 
         sf::Shader& getColorProgram();
-
         sf::Shader& getTextureProgram();
+        sf::Shader& getCreateShadowMapProgram();
 
         bool leftMouseButtonIsDown() const;
         bool rightMouseButtonIsDown() const;
@@ -76,8 +81,6 @@ namespace oge {
         void deleteScene(Scene& scene);
 
         // TODO: delete scene by index "scene number"
-
-        void setCurrentTexture(sf::Texture& texture);
 
         /**
          * create SFML window

@@ -14,8 +14,6 @@
 #include "../glm/glm.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
 
-// #include "Camera.h"
-
 namespace oge {
 
     struct Buffer {
@@ -28,7 +26,6 @@ namespace oge {
     };
 
     // forward declarations
-    class Camera;
     class OGLSystem;
     class Scene;
 
@@ -41,12 +38,15 @@ namespace oge {
         glm::vec3 scale;  // size compared to original data
         glm::mat4 currentRotation;
 
+        glm::mat4 lastShadowMVP;
+
         static const std::vector<float> xTextureCoordinates;
         static const std::vector<float> yTextureCoordinates;
 
         //  openGL VAO ID
         GLuint vertexArrayObjectID;
         std::vector<Buffer> buffers;
+        sf::Texture surfaceColorTexture;
 
         static bool beginsWith(const std::string &string, const std::string &beginning);
 
@@ -102,7 +102,10 @@ namespace oge {
          * loads data into ram
          * call uploadData to load into openGL
          */
-        bool loadFromFile(const std::string &filename);
+        bool loadFromFile(const std::string& filename);
+
+        void loadTextureFromFile(const std::string& filename);
+        sf::Texture& getSurfaceColorTexture();
 
         void uploadData();
 
@@ -117,14 +120,16 @@ namespace oge {
         virtual void handleEvent(const sf::Event& event);
 
         /** precondition: shader attribute layout matches and shader takes MVP uniform */
-        void draw(const Camera& camera, sf::Shader& mvpShader);
+        void draw(const glm::mat4& projectionMatrix,
+                  const glm::mat4& viewMatrix,
+                  sf::Shader& mvpShader,
+                  bool shadowMap = false);
     };
 }
 
 // TODO: is this the best way to do this?
 // so inheritors don't need includes or forward declarations
 #include "Scene.h"
-#include "Camera.h"
 #include "OGLSystem.h"
 
 #endif //OPENGLTEST_STLLOADER_H

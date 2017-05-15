@@ -52,6 +52,8 @@ namespace oge {
         Camera camera;
         Light light;
 
+        glm::vec3 lightInvDir;  // set during draw function
+
         std::unordered_set< SceneObject, SceneObject::hash > objects;
 
     public:
@@ -64,6 +66,8 @@ namespace oge {
 
         Light& getLight();
         void setLight(const Light& _light);
+
+        const glm::vec3& getLightInvDir() const;
 
         void setBackGroundColor(const glm::vec4 &_color);
 

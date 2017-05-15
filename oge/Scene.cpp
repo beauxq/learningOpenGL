@@ -34,7 +34,7 @@ void oge::Scene::initialize() {
     // TODO: put defaults in constants
     light.setPosition(sf::Glsl::Vec3(-30.0f, 150.0f, 45.0f));
     light.setColor(sf::Glsl::Vec3(1, 1, 1));
-    light.setPower(30000.0f);
+    light.setPower(4.0f);
 }
 
 oge::OGLSystem*& oge::Scene::getSystem() {
@@ -78,17 +78,77 @@ void oge::Scene::handleEvent(const sf::Event& event) {
 }
 
 void oge::Scene::draw() {
+    // create shadow map
+
+    glBindFramebuffer(GL_FRAMEBUFFER, system->getShadowMapFrameBufferID());
+    glViewport(0,0,1024,1024);
+
     // Clear the screen
     // glClear( GL_COLOR_BUFFER_BIT );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    sf::Shader::bind(&(system->getCreateShadowMapProgram()));
+
+    // Compute the MVP matrix from the light's point of view
+    lightInvDir = glm::vec3(light.getPosition().x,
+                            light.getPosition().y,
+                            light.getPosition().z) -
+                  camera.focusPoint;  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
+    glm::mat4 projectionMatrix = glm::ortho<float>(-10,10,-10,10,-10,20);  // TODO: compute these numbers from the camera
+    glm::mat4 viewMatrix = glm::lookAt(lightInvDir, camera.focusPoint, camera.upDirection);
+    // TODO: make option for spot light :
+    //glm::vec3 lightPos(5, 20, 20);
+    //glm::mat4 projectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
+    //glm::mat4 viewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
+
+
+    for (auto object : objects) {
+        object.object->draw(projectionMatrix, viewMatrix, system->getCreateShadowMapProgram(), true);
+    }
+
+    // system->getShadowMap().display();  // update the texture in memory
+
+
+    // now the image to the screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, system->getWindow().getSize().x, system->getWindow().getSize().y);
+    // TODO: do we need this viewport command? (without it, test edges of big windows > 1024)
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    /*
+    // bind shadow map texture in Texture Unit 1
+    glActiveTexture(GL_TEXTURE1);
+    // glBindTexture(GL_TEXTURE_2D, depthTexture);
+    sf::Texture::bind(&(system->getShadowMap().getTexture()));
+     */
+
     for (auto object : objects) {
         sf::Shader::bind(object.program);  // use the shader for this object
         // glUseProgram(programID);
-        object.object->draw(camera, *(object.program));
+
+        /*
+        // Bind our surface color texture in Texture Unit 0
+        glActiveTexture(GL_TEXTURE0);
+         */
+        // glBindTexture(GL_TEXTURE_2D, Texture);
+        //sf::Texture::bind(&(object.object->getSurfaceColorTexture()));
+        /*
+        // Set our "myTextureSampler" sampler to use Texture Unit 0
+        glUniform1i(object.object->getSurfaceColorTexture().getNativeHandle(), 0);
+        // set "shadowMap" sampler to use Texture Unit 1
+        glUniform1i(system->getShadowMap().getTexture().getNativeHandle(), 1);
+        */
+
+        object.object->draw(camera.projection, camera.getViewMatrix(), *(object.program));
     }
 }
 
 void oge::Scene::registerObject(oge::OGLObject& object, sf::Shader& program) {
     objects.emplace(object, program);
+}
+
+const glm::vec3& oge::Scene::getLightInvDir() const {
+    return lightInvDir;
 }

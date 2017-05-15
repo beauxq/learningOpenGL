@@ -14,7 +14,6 @@ private:
     Follower sphere;
     ControlledObject ring;
     oge::OGLObject background;
-    sf::Texture backgroundTexture;
 
 public:
     MainScene(oge::OGLSystem& _system);

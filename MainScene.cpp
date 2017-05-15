@@ -50,9 +50,6 @@ void MainScene::initialize() {
 
     // TODO: 2 textured items
 
-    backgroundTexture.loadFromFile("resources/background.jpg");
-    backgroundTexture.setSmooth(true);
-    getSystem()->setCurrentTexture(backgroundTexture);
     background.addBufferArray(std::vector<float>({
         -95.0f, -62.0f, -1.0f,
         95.0f, -62.0f, -1.0f,
@@ -61,6 +58,7 @@ void MainScene::initialize() {
         95.0f, 62.0f, -21.0f,
         -95.0f, 62.0f, -21.0f
     }));
+    background.loadTextureFromFile("resources/background.jpg");
     // vertexUV will be at layout location 1 / attribute 1
     background.addBufferArray(std::vector<float>({
          0.0f, 1.0f,

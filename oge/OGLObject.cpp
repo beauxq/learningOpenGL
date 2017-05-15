@@ -195,6 +195,15 @@ bool oge::OGLObject::loadFromFile(const std::string &filename) {
     return loadFromSTLFileAscii(filename);
 }
 
+void oge::OGLObject::loadTextureFromFile(const std::string& filename) {
+    surfaceColorTexture.loadFromFile(filename);
+    surfaceColorTexture.setSmooth(true);  // TODO: make this optional?
+}
+
+sf::Texture& oge::OGLObject::getSurfaceColorTexture() {
+    return surfaceColorTexture;
+}
+
 void oge::OGLObject::createVAO() {
     if (vertexArrayObjectID) {
         deleteAllBuffers();
@@ -236,52 +245,86 @@ void oge::OGLObject::uploadBufferData(GLuint* bufferIDPtr, float *dataArrayPtr, 
     glBufferData(GL_ARRAY_BUFFER, dataByteCount, dataArrayPtr, GL_STATIC_DRAW);
 }
 
-void oge::OGLObject::draw(const Camera &camera, sf::Shader& mvpShader) {
+void oge::OGLObject::draw(const glm::mat4& projectionMatrix,
+                          const glm::mat4& viewMatrix,
+                          sf::Shader& mvpShader,
+                          bool shadowMap /* = false */) {
+
+    GLint currentFBID;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBID);
+    std::cerr << "current FrameBuffer binding before glBindVertexArray: " << currentFBID << std::endl;
+
     glBindVertexArray(vertexArrayObjectID);
+    std::cerr << "after bind call isVAO: " << vertexArrayObjectID << ", " << glIsVertexArray(vertexArrayObjectID) << std::endl;
 
     // calculate new mvp matrix
     // model, then view, then projection
-    glm::mat4 MVP = camera.projection * camera.getViewMatrix() * getModelMatrix();
+    glm::mat4 MVP = projectionMatrix * viewMatrix * getModelMatrix();
 
     // upload mvp matrix
     // normal opengl way
     // glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     // sfml way
     mvpShader.setUniform("MVP", sf::Glsl::Mat4(&MVP[0][0]));
-    mvpShader.setUniform("M", sf::Glsl::Mat4(&getModelMatrix()[0][0]));
-    mvpShader.setUniform("V", sf::Glsl::Mat4(&camera.getViewMatrix()[0][0]));
+    if (shadowMap) {
+        // we need this shadow map mvp matrix later
+        // (in the next call to this function on this object
+        //   - the non shadow map call)
+        lastShadowMVP = MVP;
+    }
+    else {
+        mvpShader.setUniform("M", sf::Glsl::Mat4(&getModelMatrix()[0][0]));
+        mvpShader.setUniform("V", sf::Glsl::Mat4(&viewMatrix[0][0]));
 
-    // TODO: move this light somewhere more appropriate
-    // (both architecturally and in coordinates
-    sf::Glsl::Vec3 lightPos(-30.0f, 150.0f, 45.0f);
-    mvpShader.setUniform("LightPosition_worldspace", scene->getLight().getPosition());
-    mvpShader.setUniform("LightColor", scene->getLight().getColor());
-    mvpShader.setUniform("LightPower", scene->getLight().getPower());
+        glm::mat4 biasMatrix(
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
+            0.5, 0.5, 0.5, 1.0
+        );
+        glm::mat4 depthBiasMVP = biasMatrix*lastShadowMVP;
+
+        mvpShader.setUniform("LightColor", scene->getLight().getColor());
+        mvpShader.setUniform("LightPower", scene->getLight().getPower());
+        mvpShader.setUniform("DepthBiasMVP", sf::Glsl::Mat4(&depthBiasMVP[0][0]));
+        mvpShader.setUniform("shadowMap", scene->getSystem()->getShadowMap().getTexture());
+        mvpShader.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(scene->getLightInvDir()[0],
+                                                                            scene->getLightInvDir()[1],
+                                                                            scene->getLightInvDir()[2]));
+        if (&mvpShader == &(scene->getSystem()->getTextureProgram())) {
+            mvpShader.setUniform("myTextureSampler", surfaceColorTexture);
+        }
+    }
+    // texture uniforms are not set until bind is called
+    sf::Shader::bind(&mvpShader);
+
 
 
     // assume attribute/buffer 0 is triangle vertices
     // number of triangles is number of corners / 3
     GLsizei triangleCount = buffers[0].array.size() / 3;
 
-    // TODO: organize this better (decide with data buffers need to be drawn)
-    for (GLuint attribute = 0; attribute < buffers.size(); ++attribute) {
+    // if only rendering shadow map, only need first attribute
+    size_t attributeCount = (shadowMap) ? 1 : buffers.size();
+
+    for (GLuint attribute = 0; attribute < attributeCount; ++attribute) {
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(attribute);
         glBindBuffer(GL_ARRAY_BUFFER, buffers[attribute].id);
         glVertexAttribPointer(
-                attribute,          // attribute - must match the layout in the shader
-                buffers[attribute].array.size() / triangleCount,  // number of components for the attribute
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void *) 0          // array buffer offset
+            attribute,          // attribute - must match the layout in the shader
+            buffers[attribute].array.size() / triangleCount,  // number of components for the attribute
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            0,                  // stride
+            (void *) 0          // array buffer offset
         );
     }
 
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, triangleCount); // Starting from vertex 0; how many triangles
 
-    for (GLuint attribute = 0; attribute < buffers.size(); ++attribute) {
+    for (GLuint attribute = 0; attribute < attributeCount; ++attribute) {
         glDisableVertexAttribArray(attribute);
     }
 }
