@@ -25,7 +25,7 @@ glm::mat4 oge::Camera::getProjectionMatrix() const {
     // setters for attributes would update it
     // (and an event for the window size change)
     // TODO: option for ortho projection
-    return glm::perspective(horizontalFieldOfView,
+    return glm::perspective(verticalFieldOfView,
                             (float)oglSystem->getWindow().getSize().x / (float)oglSystem->getWindow().getSize().y,
                             nearClip,
                             farClip);
@@ -103,12 +103,12 @@ void oge::Camera::setUpDirection(const glm::vec3& _upDirection) {
     upDirection = _upDirection;
 }
 
-float oge::Camera::getHorizontalFieldOfView() const {
-    return horizontalFieldOfView;
+float oge::Camera::getVerticalFieldOfView() const {
+    return verticalFieldOfView;
 }
 
-void oge::Camera::setHorizontalFieldOfView(float _horizontalFieldOfView) {
-    horizontalFieldOfView = _horizontalFieldOfView;
+void oge::Camera::setVerticalFieldOfView(float _verticalFieldOfView) {
+    verticalFieldOfView = _verticalFieldOfView;
 }
 
 float oge::Camera::getNearClip() const {

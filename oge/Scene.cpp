@@ -20,7 +20,7 @@ void oge::Scene::initialize() {
 
     // default camera settings  TODO: put defaults in constants
     // Projection matrix : 45° Field of View, aspect ratio, display range : 0.1 unit <-> 100 units
-    camera.setHorizontalFieldOfView(45.0f);
+    camera.setVerticalFieldOfView(45.0f);
     camera.setNearClip(0.1f);
     camera.setFarClip(200.0f);
     // Or, for an ortho camera :

@@ -22,7 +22,7 @@ namespace oge {
         glm::vec3 upDirection;
 
         // projection parameters
-        float horizontalFieldOfView;
+        float verticalFieldOfView;
         float nearClip;
         float farClip;
 
@@ -39,8 +39,10 @@ namespace oge {
         void setDirectionFromFocusPoint(const glm::vec3& directionFromFocusPoint);
         const glm::vec3& getUpDirection() const;
         void setUpDirection(const glm::vec3& upDirection);
-        float getHorizontalFieldOfView() const;
-        void setHorizontalFieldOfView(float horizontalFieldOfView);
+        /** degrees */
+        float getVerticalFieldOfView() const;
+        /** degrees */
+        void setVerticalFieldOfView(float _verticalFieldOfView);
         float getNearClip() const;
         void setNearClip(float nearClip);
         float getFarClip() const;
