@@ -9,8 +9,20 @@
 #include "../glm/gtx/vector_angle.hpp"
 
 const glm::vec4 oge::Scene::DEFAULT_BACKGROUND_COLOR = {0.18f, 0.0f, 0.4f, 0.0f};
+const std::vector< glm::vec3 > oge::Scene::DEFAULT_SCENE_BOUNDS = {
+    glm::vec3(20.0f, 20.0f, 20.0f),
+    glm::vec3(20.0f, 20.0f, -20.0f),
+    glm::vec3(20.0f, -20.0f, 20.0f),
+    glm::vec3(20.0f, -20.0f, -20.0f),
+    glm::vec3(-20.0f, 20.0f, 20.0f),
+    glm::vec3(-20.0f, 20.0f, -20.0f),
+    glm::vec3(-20.0f, -20.0f, 20.0f),
+    glm::vec3(-20.0f, -20.0f, -20.0f)
+};
 
-oge::Scene::Scene(OGLSystem& _system) : system(&_system), camera(&_system) {}
+oge::Scene::Scene(OGLSystem& _system) : system(&_system),
+                                        sceneBounds(DEFAULT_SCENE_BOUNDS),
+                                        camera(this) {}
 
 void oge::Scene::initialize() {
     glClearColor(DEFAULT_BACKGROUND_COLOR[0],
@@ -21,13 +33,13 @@ void oge::Scene::initialize() {
     // default camera settings  TODO: put defaults in constants
     // Projection matrix : 45° Field of View, aspect ratio, display range : 0.1 unit <-> 100 units
     camera.setVerticalFieldOfView(45.0f);
-    camera.setNearClip(0.1f);
-    camera.setFarClip(200.0f);
+    //camera.setNearClip(0.1f);
+    //camera.setFarClip(200.0f);
     // Or, for an ortho camera :
     //camera.projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
 
     // location and direction
-    camera.setFocusPoint(glm::vec3(0, 0, 0));
+    camera.setFocusPointKeepingDirectionAndDistance(glm::vec3(0, 0, 0));
     camera.setDistanceFromFocusPoint(4.0f);
     camera.setDirectionFromFocusPoint(glm::vec3(0, 0, 1));
     camera.setUpDirection(glm::vec3(0, 1, 0));
@@ -56,6 +68,14 @@ oge::Light& oge::Scene::getLight() {
 
 void oge::Scene::setLight(const Light& _light) {
     light = _light;
+}
+
+std::vector< glm::vec3 >& oge::Scene::getSceneBounds() {
+    return sceneBounds;
+}
+
+void oge::Scene::setSceneBounds(std::vector< glm::vec3 >& bounds) {
+    sceneBounds = bounds;
 }
 
 void oge::Scene::setBackGroundColor(const glm::vec4& _color) {
@@ -133,10 +153,17 @@ glm::mat4 oge::Scene::getLightViewMatrix() const {// find light up direction
 }
 
 glm::mat4 oge::Scene::getLightProjectionMatrix() const {
-    return glm::ortho<float>(-100, 80, -40, 40, -5, 180);  // TODO: compute these numbers from the camera
-    // return glm::ortho<float>(-30, 30, -20, 20, -10, 100);
+    // find the camera view area corners
+
+    // transform them with light view matrix
+
+    // make a box that includes all those points and the light location (0,0,0)
+
+
+    //return glm::ortho<float>(-100, 100, -40, 40, 60, 200);  // TODO: compute these numbers from the camera
+    return glm::ortho<float>(-30, 30, -20, 20, 60, 200);
     // TODO: make option for spot light :
-    // return glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
+    // return glm::perspective<float>(45.0f, 1.0f, 60.0f, 200.0f);
 }
 
 void oge::Scene::setLightInvDir() {

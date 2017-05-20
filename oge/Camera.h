@@ -12,6 +12,7 @@
 namespace oge {
     // forward declaration
     class OGLSystem;
+    class Scene;
 
     class Camera {
     private:
@@ -26,13 +27,16 @@ namespace oge {
         float nearClip;
         float farClip;
 
-        OGLSystem* oglSystem;
+        void setFarClip();
+
+        Scene* scene;
 
     public:
-        Camera(OGLSystem* oglSystem);
+        Camera(Scene* _scene);
 
         const glm::vec3& getFocusPoint() const;
-        void setFocusPoint(const glm::vec3& focusPoint);
+        void setFocusPointKeepingDirectionAndDistance(const glm::vec3& focusPoint);
+        void setFocusPointKeepingCameraLocation(const glm::vec3& focusPoint);
         float getDistanceFromFocusPoint() const;
         void setDistanceFromFocusPoint(float distanceFromFocusPoint);
         const glm::vec3& getDirectionFromFocusPoint() const;
@@ -44,12 +48,18 @@ namespace oge {
         /** degrees */
         void setVerticalFieldOfView(float _verticalFieldOfView);
         float getNearClip() const;
+        /** must be greater than 0 */
         void setNearClip(float nearClip);
         float getFarClip() const;
+        /**
+         * must be greater than nearClip
+         * overrides scene bounds
+         */
         void setFarClip(float farClip);
 
         glm::vec3 getCameraLocation() const;
-        void setCameraLocation(const glm::vec3& loc);
+        void setCameraLocationKeepingFocusPoint(const glm::vec3& loc);
+        void setCameraLocationKeepingDirection(const glm::vec3& loc);
 
         /** for MVP */
         glm::mat4 getViewMatrix() const;

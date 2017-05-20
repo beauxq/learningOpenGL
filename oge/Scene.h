@@ -46,6 +46,7 @@ namespace oge {
     class Scene {
     private:
         static const glm::vec4 DEFAULT_BACKGROUND_COLOR;
+        static const std::vector< glm::vec3 > DEFAULT_SCENE_BOUNDS;  // cube width 40 centered on origin
 
         OGLSystem* system;
 
@@ -55,6 +56,8 @@ namespace oge {
         glm::vec3 lightInvDir;  // the direction from the scene to the light source
 
         std::unordered_set< SceneObject, SceneObject::hash > objects;
+
+        std::vector< glm::vec3 > sceneBounds;  // the furthest points away from teh middle of the scene
 
         /**
          * calculate the direction from the scene to the light source
@@ -80,6 +83,9 @@ namespace oge {
 
         Light& getLight();
         void setLight(const Light& _light);
+
+        std::vector< glm::vec3 >& getSceneBounds();
+        void setSceneBounds(std::vector< glm::vec3 >& bounds);
 
         const glm::vec3& getLightInvDir() const;
 

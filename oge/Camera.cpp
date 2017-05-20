@@ -5,14 +5,21 @@
 #include <iostream>
 
 #include "OGLSystem.h"
+#include "Scene.h"
 
 glm::vec3 oge::Camera::getCameraLocation() const {
     return focusPoint + distanceFromFocusPoint * glm::normalize(directionFromFocusPoint);
 }
 
-void oge::Camera::setCameraLocation(const glm::vec3& loc) {
+void oge::Camera::setCameraLocationKeepingFocusPoint(const glm::vec3& loc) {
     directionFromFocusPoint = loc - focusPoint;
     distanceFromFocusPoint = glm::distance(focusPoint, loc);
+    setFarClip();
+}
+
+void oge::Camera::setCameraLocationKeepingDirection(const glm::vec3& loc) {
+    focusPoint = loc - distanceFromFocusPoint * glm::normalize(directionFromFocusPoint);
+    setFarClip();
 }
 
 glm::mat4 oge::Camera::getViewMatrix() const {
@@ -26,7 +33,7 @@ glm::mat4 oge::Camera::getProjectionMatrix() const {
     // (and an event for the window size change)
     // TODO: option for ortho projection
     return glm::perspective(verticalFieldOfView,
-                            (float)oglSystem->getWindow().getSize().x / (float)oglSystem->getWindow().getSize().y,
+                            (float)scene->getSystem()->getWindow().getSize().x / (float)scene->getSystem()->getWindow().getSize().y,
                             nearClip,
                             farClip);
 }
@@ -39,6 +46,8 @@ void oge::Camera::zoom(float multiplier) {
         distanceFromFocusPoint = 80;
     else if (distanceFromFocusPoint < 0.1f)
         distanceFromFocusPoint = 0.1f;
+
+    setFarClip();
 }
 
 void oge::Camera::handleEvent(const sf::Event& event) {
@@ -52,31 +61,51 @@ void oge::Camera::handleEvent(const sf::Event& event) {
 void oge::Camera::update() {
     glm::vec3 temp = getCameraLocation();
     // move camera with arrow keys
-    if (oglSystem->keyIsDown(sf::Keyboard::Up)) {
+    if (scene->getSystem()->keyIsDown(sf::Keyboard::Up)) {
         focusPoint[1] += 0.1f;
+        setCameraLocationKeepingFocusPoint(temp);
     }
-    if (oglSystem->keyIsDown(sf::Keyboard::Down)) {
+    if (scene->getSystem()->keyIsDown(sf::Keyboard::Down)) {
         focusPoint[1] -= 0.1f;
+        setCameraLocationKeepingFocusPoint(temp);
     }
-    if (oglSystem->keyIsDown(sf::Keyboard::Left)) {
+    if (scene->getSystem()->keyIsDown(sf::Keyboard::Left)) {
         focusPoint[0] -= 0.1f;
+        setCameraLocationKeepingFocusPoint(temp);
     }
-    if (oglSystem->keyIsDown(sf::Keyboard::Right)) {
+    if (scene->getSystem()->keyIsDown(sf::Keyboard::Right)) {
         focusPoint[0] += 0.1f;
+        setCameraLocationKeepingFocusPoint(temp);
     }
-    setCameraLocation(temp);
 }
 
-oge::Camera::Camera(oge::OGLSystem* _oglSystem) {
-    oglSystem = _oglSystem;
+oge::Camera::Camera(oge::Scene* _scene) {
+    scene = _scene;
+
+    // defaults
+    focusPoint = glm::vec3(0.0f, 0.0f, 0.0f);
+    directionFromFocusPoint = glm::vec3(0.0f, 0.0f, 1.0f);
+    distanceFromFocusPoint = 1;
+    nearClip = 0.25f;  // has to be bigger than 0 - TODO: magic number
+    farClip = 20.0f;
 }
 
 const glm::vec3& oge::Camera::getFocusPoint() const {
     return focusPoint;
 }
 
-void oge::Camera::setFocusPoint(const glm::vec3& _focusPoint) {
+void oge::Camera::setFocusPointKeepingDirectionAndDistance(const glm::vec3& _focusPoint) {
     focusPoint = _focusPoint;
+
+    setFarClip();
+}
+
+void oge::Camera::setFocusPointKeepingCameraLocation(const glm::vec3& _focusPoint) {
+    glm::vec3 temp = getCameraLocation();
+    focusPoint = _focusPoint;
+    setCameraLocationKeepingFocusPoint(temp);
+
+    setFarClip();
 }
 
 float oge::Camera::getDistanceFromFocusPoint() const {
@@ -85,6 +114,8 @@ float oge::Camera::getDistanceFromFocusPoint() const {
 
 void oge::Camera::setDistanceFromFocusPoint(float _distanceFromFocusPoint) {
     distanceFromFocusPoint = _distanceFromFocusPoint;
+
+    setFarClip();
 }
 
 const glm::vec3& oge::Camera::getDirectionFromFocusPoint() const {
@@ -93,6 +124,8 @@ const glm::vec3& oge::Camera::getDirectionFromFocusPoint() const {
 
 void oge::Camera::setDirectionFromFocusPoint(const glm::vec3& _directionFromFocusPoint) {
     directionFromFocusPoint = _directionFromFocusPoint;
+
+    setFarClip();
 }
 
 const glm::vec3& oge::Camera::getUpDirection() const {
@@ -116,7 +149,11 @@ float oge::Camera::getNearClip() const {
 }
 
 void oge::Camera::setNearClip(float _nearClip) {
-    nearClip = _nearClip;
+    if (_nearClip > 0) {
+        nearClip = _nearClip;
+    }
+
+    setFarClip();
 }
 
 float oge::Camera::getFarClip() const {
@@ -124,5 +161,28 @@ float oge::Camera::getFarClip() const {
 }
 
 void oge::Camera::setFarClip(float _farClip) {
-    farClip = _farClip;
+    if (_farClip > nearClip) {
+        farClip = _farClip;
+    }
+}
+
+void oge::Camera::setFarClip() {
+    // project all of the scene bounds onto the camera line of sight
+    // take the distance that is furthest down that line of sight
+    float furthestDistance = nearClip + 0.25f;  // TODO: magic number, needs to be bigger than nearClip
+    glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 shift = origin - getCameraLocation();
+    glm::vec3 cameraLineOfSight = origin - getDirectionFromFocusPoint();
+    for (auto boundI = scene->getSceneBounds().begin(); boundI != scene->getSceneBounds().end(); ++boundI) {
+        // test
+        float x = (glm::dot((*boundI + shift), cameraLineOfSight) / glm::dot(cameraLineOfSight, cameraLineOfSight));
+        glm::vec3 projection = x * cameraLineOfSight;
+        float thisDistance = glm::distance(origin, projection);
+        if (thisDistance > furthestDistance) {
+            furthestDistance = thisDistance;
+        }
+    }
+
+    farClip = furthestDistance + 0.25f;
+    std::cout << "set far clip to " << farClip << std::endl;
 }

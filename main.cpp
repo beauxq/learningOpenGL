@@ -278,7 +278,7 @@ void old_stuff()
         if (keyIsDown[sf::Keyboard::Right]) {
             // camera.focusPoint[0] += 0.1f;
         }
-        // camera.setCameraLocation(temp);
+        // camera.setCameraLocationKeepingFocusPoint(temp);
 
 
         //draw

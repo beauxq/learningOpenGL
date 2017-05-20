@@ -17,10 +17,6 @@ void MainScene::update() {
 void MainScene::initialize() {
     oge::Scene::initialize();
 
-    // get camera at light location
-    //getCamera().setCameraLocation(glm::vec3(-30.0f, 150.0f, 45.0f));
-    //getCamera().projection = glm::ortho<float>(-100,100,-40,40,-10,300);
-
     ring.loadFromFile("resources/bath spout cover new.stl");
     ring.uploadData();
     ring.setScale(glm::vec3(0.1f));
