@@ -6,6 +6,8 @@
 #include "OGLObject.h"
 #include "OGLSystem.h"
 
+#include "../glm/gtx/vector_angle.hpp"
+
 const glm::vec4 oge::Scene::DEFAULT_BACKGROUND_COLOR = {0.18f, 0.0f, 0.4f, 0.0f};
 
 oge::Scene::Scene(OGLSystem& _system) : system(&_system), camera(&_system) {}
@@ -89,76 +91,61 @@ void oge::Scene::draw() {
     sf::Shader::bind(&(system->getCreateShadowMapProgram()));
 
     // Compute the MVP matrix from the light's point of view
-    lightInvDir = glm::vec3(light.getPosition().x,
-                            light.getPosition().y,
-                            light.getPosition().z) -
-                  camera.getFocusPoint();  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
-    glm::mat4 projectionMatrix = glm::ortho<float>(-100,100,-40,40,-10,300);  // TODO: compute these numbers from the camera
-    glm::mat4 viewMatrix = glm::lookAt(lightInvDir, camera.getFocusPoint(), camera.getUpDirection());
-    // TODO: make option for spot light :
-    //glm::vec3 lightPos(5, 20, 20);
-    //glm::mat4 projectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
-    //glm::mat4 viewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
-
+    setLightInvDir();
+    glm::mat4 projectionMatrix = getLightProjectionMatrix();
+    glm::mat4 viewMatrix = getLightViewMatrix();
 
     for (auto object : objects) {
         object.object->draw(projectionMatrix, viewMatrix, system->getCreateShadowMapProgram(), true);
     }
-
-    // TODO: if we don't need display() then get rid of these
-    //system->getShadowMap().display();  // update the texture in memory
-    // display activates new context, so back to original
-    //system->getWindow().setActive();
-
-
-    // testing
-    /*
-    sf::Image imageAfterCreateShadowMap(system->getShadowMap().getTexture().copyToImage());
-    imageAfterCreateShadowMap.saveToFile("resources/imageOut.bmp");
-    std::cout << "size: " << imageAfterCreateShadowMap.getSize().x << ", " << imageAfterCreateShadowMap.getSize().y << std::endl;
-    sf::Color pixel = imageAfterCreateShadowMap.getPixel(0, 0);
-    std::cout << "0, 0: " << pixel.r << ' ' << pixel.g << ' ' << pixel.b << ' ' << pixel.a << std::endl;
-    // found no color data "0, 0: [nothing]"
-
-    exit(2);
-     */
 
 
     // now the image to the screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, system->getWindow().getSize().x, system->getWindow().getSize().y);
     // TODO: do we need this viewport command? (without it, test edges of big windows > 1024)
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    /*
-    // bind shadow map texture in Texture Unit 1
-    glActiveTexture(GL_TEXTURE1);
-    // glBindTexture(GL_TEXTURE_2D, depthTexture);
-    sf::Texture::bind(&(system->getShadowMap().getTexture()));
-     */
 
     for (auto object : objects) {
         sf::Shader::bind(object.program);  // use the shader for this object
         // glUseProgram(programID);
 
-        /*
-        // Bind our surface color texture in Texture Unit 0
-        glActiveTexture(GL_TEXTURE0);
-         */
-        // glBindTexture(GL_TEXTURE_2D, Texture);
-        //sf::Texture::bind(&(object.object->getSurfaceColorTexture()));
-        /*
-        // Set our "myTextureSampler" sampler to use Texture Unit 0
-        glUniform1i(object.object->getSurfaceColorTexture().getNativeHandle(), 0);
-        // set "shadowMap" sampler to use Texture Unit 1
-        glUniform1i(system->getShadowMap().getTexture().getNativeHandle(), 1);
-        */
-
         object.object->draw(camera.getProjectionMatrix(), camera.getViewMatrix(), *(object.program));
+        // object.object->draw(projectionMatrix, viewMatrix, *(object.program));  // light pov
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  // TODO: probably don't need this
+}
+
+glm::mat4 oge::Scene::getLightViewMatrix() const {// find light up direction
+    // the normal of light position, focus point, camera position is the axis for rotation
+    glm::vec3 rotateAxis = glm::cross(camera.getCameraLocation() - camera.getFocusPoint(),
+                                      lightInvDir);
+    float rotateAngle = glm::angle(normalize(camera.getCameraLocation() - camera.getFocusPoint()),
+                                   normalize(lightInvDir));
+    glm::mat4 upRotateMatrix = rotate(glm::mat4(1.0f), rotateAngle, rotateAxis);
+    glm::vec3 lightUpDirection = upRotateMatrix * glm::vec4(camera.getUpDirection(), 0.0f);
+
+    return lookAt(glm::vec3(light.getPosition().x,
+                            light.getPosition().y,
+                            light.getPosition().z),
+                  camera.getFocusPoint(),  // TODO: maybe use the center of the scene instead of the camera focus point?
+                  lightUpDirection);
+}
+
+glm::mat4 oge::Scene::getLightProjectionMatrix() const {
+    return glm::ortho<float>(-100, 80, -40, 40, -5, 180);  // TODO: compute these numbers from the camera
+    // return glm::ortho<float>(-30, 30, -20, 20, -10, 100);
+    // TODO: make option for spot light :
+    // return glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
+}
+
+void oge::Scene::setLightInvDir() {
+    // TODO: maybe use the center of the scene instead of the camera focus point?
+    lightInvDir = glm::vec3(light.getPosition().x,
+                            light.getPosition().y,
+                            light.getPosition().z) -
+                  camera.getFocusPoint();  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
+    //lightInvDir = glm::normalize(lightInvDir) * 70.0f;
 }
 
 void oge::Scene::registerObject(oge::OGLObject& object, sf::Shader& program) {

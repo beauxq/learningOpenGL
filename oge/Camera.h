@@ -53,6 +53,11 @@ namespace oge {
         glm::mat4 getViewMatrix() const;
         glm::mat4 getProjectionMatrix() const;
 
+        // TODO: rename?
+        /**
+         * not really a zoom, it moves the camera towards or away from focus point
+         * multiply the distance by something between 0 and 1, or greater than 1
+         */
         void zoom(float multiplier);
 
         /**

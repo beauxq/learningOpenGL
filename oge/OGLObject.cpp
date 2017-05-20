@@ -295,6 +295,7 @@ void oge::OGLObject::draw(const glm::mat4& projectionMatrix,
         mvpShader.setUniform("LightInvDirection_worldspace", sf::Glsl::Vec3(scene->getLightInvDir()[0],
                                                                             scene->getLightInvDir()[1],
                                                                             scene->getLightInvDir()[2]));
+        // texture uniforms
         if (&mvpShader == &(scene->getSystem()->getTextureProgram())) {
             // shadow map texture to texture unit 1
             glActiveTexture(GL_TEXTURE1);

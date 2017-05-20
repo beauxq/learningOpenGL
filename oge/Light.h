@@ -4,8 +4,8 @@
 #define NEWEROPENGLTEST_LIGHT_H
 
 
-#include <SFML/Graphics/Glsl.hpp>
-#include "../glm/vec3.hpp"
+#include <SFML/Graphics.hpp>
+#include "../glm/glm.hpp"
 
 namespace oge {
     class Light {

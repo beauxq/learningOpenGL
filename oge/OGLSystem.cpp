@@ -275,20 +275,8 @@ void oge::OGLSystem::deleteScene(oge::Scene& scene) {
         scene.~Scene();  // this should delete openGL objects - TODO: test
         scenes[i] = &emptyScene;
     }
-
-
 }
 
 sf::RenderWindow& oge::OGLSystem::getWindow() {
     return window;
 }
-
-/*
-sf::RenderTexture& oge::OGLSystem::getShadowMap() {
-    return shadowMap;
-}
-
-const GLint& oge::OGLSystem::getShadowMapFrameBufferID() const {
-    return shadowMapFrameBufferID;
-}
-*/
