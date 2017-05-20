@@ -14,24 +14,44 @@ namespace oge {
     class OGLSystem;
 
     class Camera {
-    public:  // TODO: make private and make getters and setters where needed
+    private:
+        // view parameters
         glm::vec3 focusPoint;
         float distanceFromFocusPoint;
         glm::vec3 directionFromFocusPoint;  // normalized
         glm::vec3 upDirection;
 
-        glm::mat4 projection;
+        // projection parameters
+        float horizontalFieldOfView;
+        float nearClip;
+        float farClip;
 
         OGLSystem* oglSystem;
 
     public:
         Camera(OGLSystem* oglSystem);
 
+        const glm::vec3& getFocusPoint() const;
+        void setFocusPoint(const glm::vec3& focusPoint);
+        float getDistanceFromFocusPoint() const;
+        void setDistanceFromFocusPoint(float distanceFromFocusPoint);
+        const glm::vec3& getDirectionFromFocusPoint() const;
+        void setDirectionFromFocusPoint(const glm::vec3& directionFromFocusPoint);
+        const glm::vec3& getUpDirection() const;
+        void setUpDirection(const glm::vec3& upDirection);
+        float getHorizontalFieldOfView() const;
+        void setHorizontalFieldOfView(float horizontalFieldOfView);
+        float getNearClip() const;
+        void setNearClip(float nearClip);
+        float getFarClip() const;
+        void setFarClip(float farClip);
+
         glm::vec3 getCameraLocation() const;
         void setCameraLocation(const glm::vec3& loc);
 
         /** for MVP */
         glm::mat4 getViewMatrix() const;
+        glm::mat4 getProjectionMatrix() const;
 
         void zoom(float multiplier);
 

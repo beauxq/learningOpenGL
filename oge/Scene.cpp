@@ -18,18 +18,17 @@ void oge::Scene::initialize() {
 
     // default camera settings  TODO: put defaults in constants
     // Projection matrix : 45° Field of View, aspect ratio, display range : 0.1 unit <-> 100 units
-    camera.projection = glm::perspective(45.0f,
-                                         (float)system->getWindow().getSize().x / (float)system->getWindow().getSize().y,
-                                         0.1f,
-                                         200.0f);
+    camera.setHorizontalFieldOfView(45.0f);
+    camera.setNearClip(0.1f);
+    camera.setFarClip(200.0f);
     // Or, for an ortho camera :
     //camera.projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
 
     // location and direction
-    camera.focusPoint = glm::vec3(0, 0, 0);
-    camera.distanceFromFocusPoint = 4.0f;
-    camera.directionFromFocusPoint = glm::vec3(0, 0, 1);
-    camera.upDirection = glm::vec3(0, 1, 0);
+    camera.setFocusPoint(glm::vec3(0, 0, 0));
+    camera.setDistanceFromFocusPoint(4.0f);
+    camera.setDirectionFromFocusPoint(glm::vec3(0, 0, 1));
+    camera.setUpDirection(glm::vec3(0, 1, 0));
 
     // TODO: put defaults in constants
     light.setPosition(sf::Glsl::Vec3(-30.0f, 150.0f, 45.0f));
@@ -93,9 +92,9 @@ void oge::Scene::draw() {
     lightInvDir = glm::vec3(light.getPosition().x,
                             light.getPosition().y,
                             light.getPosition().z) -
-                  camera.focusPoint;  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
+                  camera.getFocusPoint();  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
     glm::mat4 projectionMatrix = glm::ortho<float>(-100,100,-40,40,-10,300);  // TODO: compute these numbers from the camera
-    glm::mat4 viewMatrix = glm::lookAt(lightInvDir, camera.focusPoint, camera.upDirection);
+    glm::mat4 viewMatrix = glm::lookAt(lightInvDir, camera.getFocusPoint(), camera.getUpDirection());
     // TODO: make option for spot light :
     //glm::vec3 lightPos(5, 20, 20);
     //glm::mat4 projectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
@@ -157,7 +156,7 @@ void oge::Scene::draw() {
         glUniform1i(system->getShadowMap().getTexture().getNativeHandle(), 1);
         */
 
-        object.object->draw(camera.projection, camera.getViewMatrix(), *(object.program));
+        object.object->draw(camera.getProjectionMatrix(), camera.getViewMatrix(), *(object.program));
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  // TODO: probably don't need this
 }

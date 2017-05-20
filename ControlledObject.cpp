@@ -22,8 +22,8 @@ void ControlledObject::handleEvent(const sf::Event& event) {
             int xDiff = event.mouseMove.x - getSystem()->getPreviousMouseLocation().x;
             int yDiff = event.mouseMove.y - getSystem()->getPreviousMouseLocation().y;
 
-            translate(xDiff * 0.002f * getScene()->getCamera().distanceFromFocusPoint,
-                      yDiff * -0.002f * getScene()->getCamera().distanceFromFocusPoint,
+            translate(xDiff * 0.002f * getScene()->getCamera().getDistanceFromFocusPoint(),
+                      yDiff * -0.002f * getScene()->getCamera().getDistanceFromFocusPoint(),
                       0);
             std::cout << getLocation().x << ' ' << getLocation().y << std::endl;
         }
