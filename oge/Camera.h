@@ -60,6 +60,7 @@ namespace oge {
         glm::vec3 getCameraLocation() const;
         void setCameraLocationKeepingFocusPoint(const glm::vec3& loc);
         void setCameraLocationKeepingDirection(const glm::vec3& loc);
+        glm::vec3 getDirection() const;
 
         /** for MVP */
         glm::mat4 getViewMatrix() const;

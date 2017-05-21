@@ -54,6 +54,7 @@ namespace oge {
         Light light;
 
         glm::vec3 lightInvDir;  // the direction from the scene to the light source
+        glm::mat4 lightViewMatrix;
 
         std::unordered_set< SceneObject, SceneObject::hash > objects;
 
@@ -65,13 +66,19 @@ namespace oge {
         void setLightInvDir();
         /**
          * return projection transformation matrix from the point of view of the light
+         * precondition: setLightViewMatrix()
          */
         glm::mat4 getLightProjectionMatrix() const;
         /**
          * return view transformation matrix from the point of view of the light
-         * precondition: setLightInvDir()
+         * precondition: setLightViewMatrix()
          */
         glm::mat4 getLightViewMatrix() const;
+        /**
+         * calculate view transformation matrix from the point of view of the light
+         * precondition: setLightInvDir()
+         */
+        void setLightViewMatrix();
 
     public:
         Scene(OGLSystem& _system);

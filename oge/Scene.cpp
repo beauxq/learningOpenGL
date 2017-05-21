@@ -8,6 +8,11 @@
 
 #include "../glm/gtx/vector_angle.hpp"
 
+// for debugging
+std::ostream& operator<< (std::ostream& out, const glm::vec3& vec) {
+    return out << vec[0] << ' ' << vec[1] << ' ' << vec[2];
+}
+
 const glm::vec4 oge::Scene::DEFAULT_BACKGROUND_COLOR = {0.18f, 0.0f, 0.4f, 0.0f};
 const std::vector< glm::vec3 > oge::Scene::DEFAULT_SCENE_BOUNDS = {
     glm::vec3(20.0f, 20.0f, 20.0f),
@@ -112,6 +117,7 @@ void oge::Scene::draw() {
 
     // Compute the MVP matrix from the light's point of view
     setLightInvDir();
+    setLightViewMatrix();
     glm::mat4 projectionMatrix = getLightProjectionMatrix();
     glm::mat4 viewMatrix = getLightViewMatrix();
 
@@ -136,7 +142,8 @@ void oge::Scene::draw() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  // TODO: probably don't need this
 }
 
-glm::mat4 oge::Scene::getLightViewMatrix() const {// find light up direction
+void oge::Scene::setLightViewMatrix() {
+    // find light up direction
     // the normal of light position, focus point, camera position is the axis for rotation
     glm::vec3 rotateAxis = glm::cross(camera.getCameraLocation() - camera.getFocusPoint(),
                                       lightInvDir);
@@ -145,23 +152,94 @@ glm::mat4 oge::Scene::getLightViewMatrix() const {// find light up direction
     glm::mat4 upRotateMatrix = rotate(glm::mat4(1.0f), rotateAngle, rotateAxis);
     glm::vec3 lightUpDirection = upRotateMatrix * glm::vec4(camera.getUpDirection(), 0.0f);
 
-    return lookAt(glm::vec3(light.getPosition().x,
-                            light.getPosition().y,
-                            light.getPosition().z),
-                  camera.getFocusPoint(),  // TODO: maybe use the center of the scene instead of the camera focus point?
-                  lightUpDirection);
+    lightViewMatrix = lookAt(glm::vec3(light.getPosition().x,
+                                       light.getPosition().y,
+                                       light.getPosition().z),
+                             camera.getFocusPoint(),  // TODO: maybe use the center of the scene instead of the camera focus point?
+                             lightUpDirection);
+}
+
+glm::mat4 oge::Scene::getLightViewMatrix() const {
+    return lightViewMatrix;
 }
 
 glm::mat4 oge::Scene::getLightProjectionMatrix() const {
-    // find the camera view area corners
+    // find the camera view area corners and the light location
+    glm::vec3 corners[6];
+    corners[0] = camera.getCameraLocation();
+    glm::vec3 cameraDirection = camera.getDirection();
+    std::cout << "direction got from camera: " << cameraDirection << std::endl;
+    glm::vec3 middleOfFarClip = corners[0] + camera.getFarClip() * glm::normalize(cameraDirection);
+    std::cout << "middle of far clip: " << middleOfFarClip << std::endl;
+    glm::vec3 perpendicularSide(
+        cameraDirection[1] * camera.getUpDirection()[2] - cameraDirection[2] * camera.getUpDirection()[1],
+        -(cameraDirection[0] * camera.getUpDirection()[2] - cameraDirection[2] * camera.getUpDirection()[0]),
+        cameraDirection[0] * camera.getUpDirection()[1] - cameraDirection[1] * camera.getUpDirection()[0]
+    );  // perpendicular to both camera direction and up
+    std::cout << "perpendicular side: " << perpendicularSide << std::endl;
+    glm::vec3 perpendicularUp(
+        perpendicularSide[1] * cameraDirection[2] - perpendicularSide[2] * cameraDirection[1],
+        -(perpendicularSide[0] * cameraDirection[2] - perpendicularSide[2] * cameraDirection[0]),
+        perpendicularSide[0] * cameraDirection[1] - perpendicularSide[1] * cameraDirection[0]
+    );  // this might be down, but we're going to go both directions, so it doesn't matter if it's up or down
+    std::cout << "perp up: " << perpendicularUp << std::endl;
+    perpendicularSide = glm::normalize(perpendicularSide);
+    perpendicularUp = glm::normalize(perpendicularUp);
+    float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(camera.getVerticalFieldOfView() / 2.0f);
+    float distanceToSideOfFarClip = distanceToTopOfFarClip *
+                                    (float)system->getWindow().getSize().x /
+                                    (float)system->getWindow().getSize().y;
+    corners[1] = middleOfFarClip + distanceToTopOfFarClip * perpendicularUp + distanceToSideOfFarClip * perpendicularSide;
+    corners[2] = middleOfFarClip + distanceToTopOfFarClip * perpendicularUp - distanceToSideOfFarClip * perpendicularSide;
+    corners[3] = middleOfFarClip - distanceToTopOfFarClip * perpendicularUp + distanceToSideOfFarClip * perpendicularSide;
+    corners[4] = middleOfFarClip - distanceToTopOfFarClip * perpendicularUp - distanceToSideOfFarClip * perpendicularSide;
+    corners[5] = glm::vec3(light.getPosition().x, light.getPosition().y, light.getPosition().z);
+    std::cout << "bottom two corners: " << corners[3] << "  /  " << corners[4] << std::endl;
 
     // transform them with light view matrix
+    glm::vec3 transformedCorners[6];
+    for (size_t i = 0; i < 6; ++i) {
+        glm::vec4 result = lightViewMatrix * glm::vec4(corners[i], 1.0f);
+        transformedCorners[i][0] = result[0];
+        transformedCorners[i][1] = result[1];
+        transformedCorners[i][2] = result[2];
+    }
+    // test - TODO: remove this after lots of testing
+    if (transformedCorners[5].x != 0 || transformedCorners[5].y != 0 || transformedCorners[5].z != 0) {
+        std::cerr << "warning: light location transformed to light space isn't 0: "
+                  << transformedCorners[5].x << ' ' << transformedCorners[5].y << ' ' << transformedCorners[5].z << std::endl;
+    }
+    std::cout << "bot 2 corners after transform: " << transformedCorners[3] << "  /  " << transformedCorners[4] << std::endl;
 
-    // make a box that includes all those points and the light location (0,0,0)
+    // make a box that includes all those points
+    float maxX = 0, minX = 0, maxY = 0, minY = 0, maxZ = 0, minZ = 0;
+    for (size_t i = 0; i < 6; ++i) {
+        if (transformedCorners[i][0] < minX) {
+            minX = transformedCorners[i][0];
+        }
+        else if (transformedCorners[i][0] > maxX) {
+            maxX = transformedCorners[i][0];
+        }
+        if (transformedCorners[i][1] < minY) {
+            minY = transformedCorners[i][1];
+        }
+        else if (transformedCorners[i][1] > maxY) {
+            maxY = transformedCorners[i][1];
+        }
+        if (-(transformedCorners[i][2]) < minZ) {
+            minZ = -(transformedCorners[i][2]);
+        }
+        else if (-(transformedCorners[i][2]) > maxZ) {
+            maxZ = -(transformedCorners[i][2]);
+        }
+    }
 
+    std::cout << "found box: " << minX << ' ' << maxX << ' ' << minY << ' ' << maxY << ' ' << minZ << ' ' << maxZ << std::endl;
+
+    return glm::ortho<float>(minX, maxX, minY, maxY, minZ, maxZ);
 
     //return glm::ortho<float>(-100, 100, -40, 40, 60, 200);  // TODO: compute these numbers from the camera
-    return glm::ortho<float>(-30, 30, -20, 20, 60, 200);
+    //return glm::ortho<float>(-30, 30, -20, 20, 60, 200);
     // TODO: make option for spot light :
     // return glm::perspective<float>(45.0f, 1.0f, 60.0f, 200.0f);
 }

@@ -22,6 +22,12 @@ void oge::Camera::setCameraLocationKeepingDirection(const glm::vec3& loc) {
     setFarClip();
 }
 
+glm::vec3 oge::Camera::getDirection() const {
+    return glm::vec3(0.0f - getDirectionFromFocusPoint()[0],
+                     0.0f - getDirectionFromFocusPoint()[1],
+                     0.0f - getDirectionFromFocusPoint()[2]);
+}
+
 glm::mat4 oge::Camera::getViewMatrix() const {
     // TODO: cache this to not have to calculate it on every call?
     return glm::lookAt(getCameraLocation(), focusPoint, upDirection);
