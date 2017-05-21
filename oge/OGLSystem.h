@@ -17,6 +17,9 @@
 
 namespace oge {
 
+    // utility function for vector cross product vector to new vector
+    glm::vec3 crossVec(const glm::vec3& lhs, const glm::vec3& rhs);
+
     class OGLSystem {
     private:
         sf::RenderWindow window;  // TODO: change this to RenderWindow if we want to do any SFML drawing

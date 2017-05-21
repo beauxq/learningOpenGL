@@ -157,6 +157,7 @@ void oge::Scene::setLightViewMatrix() {
                                        light.getPosition().z),
                              camera.getFocusPoint(),  // TODO: maybe use the center of the scene instead of the camera focus point?
                              lightUpDirection);
+    // TODO: if the above todo doesn't fix it, stop the shadows from moving with the camera
 }
 
 glm::mat4 oge::Scene::getLightViewMatrix() const {
@@ -171,21 +172,16 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     std::cout << "direction got from camera: " << cameraDirection << std::endl;
     glm::vec3 middleOfFarClip = corners[0] + camera.getFarClip() * glm::normalize(cameraDirection);
     std::cout << "middle of far clip: " << middleOfFarClip << std::endl;
-    glm::vec3 perpendicularSide(
-        cameraDirection[1] * camera.getUpDirection()[2] - cameraDirection[2] * camera.getUpDirection()[1],
-        -(cameraDirection[0] * camera.getUpDirection()[2] - cameraDirection[2] * camera.getUpDirection()[0]),
-        cameraDirection[0] * camera.getUpDirection()[1] - cameraDirection[1] * camera.getUpDirection()[0]
-    );  // perpendicular to both camera direction and up
+    glm::vec3 perpendicularSide(crossVec(cameraDirection, camera.getUpDirection()));
+    // ^ perpendicular to both camera direction and up
     std::cout << "perpendicular side: " << perpendicularSide << std::endl;
-    glm::vec3 perpendicularUp(
-        perpendicularSide[1] * cameraDirection[2] - perpendicularSide[2] * cameraDirection[1],
-        -(perpendicularSide[0] * cameraDirection[2] - perpendicularSide[2] * cameraDirection[0]),
-        perpendicularSide[0] * cameraDirection[1] - perpendicularSide[1] * cameraDirection[0]
-    );  // this might be down, but we're going to go both directions, so it doesn't matter if it's up or down
+    glm::vec3 perpendicularUp(crossVec(perpendicularSide, cameraDirection));
+    // ^ this might be down, but we're going to go both directions, so it doesn't matter if it's up or down
     std::cout << "perp up: " << perpendicularUp << std::endl;
     perpendicularSide = glm::normalize(perpendicularSide);
     perpendicularUp = glm::normalize(perpendicularUp);
-    float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(camera.getVerticalFieldOfView() / 2.0f);
+    float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f));
+    // TODO: this seemed like it worked better when I gave it degrees instead of radians - investigate
     float distanceToSideOfFarClip = distanceToTopOfFarClip *
                                     (float)system->getWindow().getSize().x /
                                     (float)system->getWindow().getSize().y;
@@ -205,7 +201,7 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
         transformedCorners[i][2] = result[2];
     }
     // test - TODO: remove this after lots of testing
-    if (transformedCorners[5].x != 0 || transformedCorners[5].y != 0 || transformedCorners[5].z != 0) {
+    if (transformedCorners[5].x > 0.0001f || transformedCorners[5].y > 0.0001f || transformedCorners[5].z < -0.0001f) {
         std::cerr << "warning: light location transformed to light space isn't 0: "
                   << transformedCorners[5].x << ' ' << transformedCorners[5].y << ' ' << transformedCorners[5].z << std::endl;
     }

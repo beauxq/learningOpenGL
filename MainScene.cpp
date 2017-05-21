@@ -12,6 +12,47 @@ void MainScene::update() {
     if (glm::distance(sphere.getLocation(), ring.getLocation()) > 0.05f) {
         sphere.translate(glm::normalize(ring.getLocation() - sphere.getLocation()) * 0.04f);
     }
+
+    // camera controls
+    if (getSystem()->keyIsDown(sf::Keyboard::W)) {
+        getCamera().setCameraLocationKeepingDirection(getCamera().getCameraLocation() +
+                                                      0.2f * glm::normalize(getCamera().getDirection()));
+    }
+    if (getSystem()->keyIsDown(sf::Keyboard::S)) {
+        getCamera().setCameraLocationKeepingDirection(getCamera().getCameraLocation() -
+                                                      0.1f * glm::normalize(getCamera().getDirection()));
+    }
+    if (getSystem()->keyIsDown(sf::Keyboard::Q)) {
+        glm::vec3 moveDirection = oge::crossVec(getCamera().getDirection(), getCamera().getUpDirection());
+        getCamera().setCameraLocationKeepingDirection(getCamera().getCameraLocation() -
+                                                      0.2f * glm::normalize(moveDirection));
+    }
+    if (getSystem()->keyIsDown(sf::Keyboard::E)) {
+        glm::vec3 moveDirection = oge::crossVec(getCamera().getDirection(), getCamera().getUpDirection());
+        getCamera().setCameraLocationKeepingDirection(getCamera().getCameraLocation() +
+                                                      0.2f * glm::normalize(moveDirection));
+    }
+    if (getSystem()->keyIsDown(sf::Keyboard::A)) {
+        float radius = glm::distance(getCamera().getCameraLocation(), getCamera().getFocusPoint());
+        std::cerr << "radius: " << radius << std::endl;
+        float currentAngle = (float)atan2(getCamera().getFocusPoint()[2] - getCamera().getCameraLocation()[2],
+                                          getCamera().getFocusPoint()[0] - getCamera().getCameraLocation()[0]);
+        std::cerr << "current angle: " << currentAngle << std::endl;
+        currentAngle -= 0.02f;
+        std::cerr << "cos: " << glm::cos(currentAngle) << std::endl;
+        getCamera().setFocusPointKeepingCameraLocation(glm::vec3(getCamera().getCameraLocation()[0] + radius * glm::cos(currentAngle),
+                                                                 getCamera().getFocusPoint()[1],
+                                                                 getCamera().getCameraLocation()[2] + radius * glm::sin(currentAngle)));
+    }
+    if (getSystem()->keyIsDown(sf::Keyboard::D)) {
+        float radius = glm::distance(getCamera().getCameraLocation(), getCamera().getFocusPoint());
+        float currentAngle = (float)atan2(getCamera().getFocusPoint()[2] - getCamera().getCameraLocation()[2],
+                                          getCamera().getFocusPoint()[0] - getCamera().getCameraLocation()[0]);
+        currentAngle += 0.02f;
+        getCamera().setFocusPointKeepingCameraLocation(glm::vec3(getCamera().getCameraLocation()[0] + radius * glm::cos(currentAngle),
+                                                                 getCamera().getFocusPoint()[1],
+                                                                 getCamera().getCameraLocation()[2] + radius * glm::sin(currentAngle)));
+    }
 }
 
 void MainScene::initialize() {

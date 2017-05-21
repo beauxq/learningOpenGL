@@ -8,6 +8,12 @@
 
 #include "Scene.h"
 
+glm::vec3 oge::crossVec(const glm::vec3& lhs, const glm::vec3& rhs) {
+    return glm::vec3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
+                     -(lhs[0] * rhs[2] - lhs[2] * rhs[0]),
+                     lhs[0] * rhs[1] - lhs[1] * rhs[0]);
+}
+
 void oge::OGLSystem::initialize() {
     // main window
     sf::ContextSettings contextSettings;

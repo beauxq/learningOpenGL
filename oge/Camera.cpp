@@ -108,10 +108,15 @@ void oge::Camera::setFocusPointKeepingDirectionAndDistance(const glm::vec3& _foc
 
 void oge::Camera::setFocusPointKeepingCameraLocation(const glm::vec3& _focusPoint) {
     glm::vec3 temp = getCameraLocation();
-    focusPoint = _focusPoint;
-    setCameraLocationKeepingFocusPoint(temp);
+    if (_focusPoint != temp) {
+        focusPoint = _focusPoint;
+        setCameraLocationKeepingFocusPoint(temp);
 
-    setFarClip();
+        setFarClip();
+    }
+    else {
+        std::cerr << "error: attempt to set camera focus point to camera location\n";
+    }
 }
 
 float oge::Camera::getDistanceFromFocusPoint() const {
