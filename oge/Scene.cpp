@@ -24,9 +24,11 @@ const std::vector< glm::vec3 > oge::Scene::DEFAULT_SCENE_BOUNDS = {
     glm::vec3(-20.0f, -20.0f, 20.0f),
     glm::vec3(-20.0f, -20.0f, -20.0f)
 };
+const glm::vec3 oge::Scene::DEFAULT_SCENE_CENTER = glm::vec3(0.0f, 0.0f, 0.0f);
 
 oge::Scene::Scene(OGLSystem& _system) : system(&_system),
                                         sceneBounds(DEFAULT_SCENE_BOUNDS),
+                                        sceneCenter(DEFAULT_SCENE_CENTER),
                                         camera(this) {}
 
 void oge::Scene::initialize() {
@@ -81,6 +83,14 @@ std::vector< glm::vec3 >& oge::Scene::getSceneBounds() {
 
 void oge::Scene::setSceneBounds(std::vector< glm::vec3 >& bounds) {
     sceneBounds = bounds;
+}
+
+glm::vec3& oge::Scene::getSceneCenter() {
+    return sceneCenter;
+}
+
+void oge::Scene::setSceneCenter(const glm::vec3& center) {
+    sceneCenter = center;
 }
 
 void oge::Scene::setBackGroundColor(const glm::vec4& _color) {
@@ -155,9 +165,8 @@ void oge::Scene::setLightViewMatrix() {
     lightViewMatrix = lookAt(glm::vec3(light.getPosition().x,
                                        light.getPosition().y,
                                        light.getPosition().z),
-                             camera.getFocusPoint(),  // TODO: maybe use the center of the scene instead of the camera focus point?
+                             sceneCenter,
                              lightUpDirection);
-    // TODO: if the above todo doesn't fix it, stop the shadows from moving with the camera
 }
 
 glm::mat4 oge::Scene::getLightViewMatrix() const {
@@ -234,18 +243,17 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
 
     return glm::ortho<float>(minX, maxX, minY, maxY, minZ, maxZ);
 
-    //return glm::ortho<float>(-100, 100, -40, 40, 60, 200);  // TODO: compute these numbers from the camera
+    //return glm::ortho<float>(-100, 100, -40, 40, 60, 200);
     //return glm::ortho<float>(-30, 30, -20, 20, 60, 200);
     // TODO: make option for spot light :
     // return glm::perspective<float>(45.0f, 1.0f, 60.0f, 200.0f);
 }
 
 void oge::Scene::setLightInvDir() {
-    // TODO: maybe use the center of the scene instead of the camera focus point?
     lightInvDir = glm::vec3(light.getPosition().x,
                             light.getPosition().y,
                             light.getPosition().z) -
-                  camera.getFocusPoint();  // glm::vec3(0.5f,2,2);  // TODO: test with different focus points and light positions
+                  sceneCenter;  // glm::vec3(0.5f,2,2);  // TODO: test with different scene centers and light positions
     //lightInvDir = glm::normalize(lightInvDir) * 70.0f;
 }
 

@@ -52,6 +52,7 @@ void MainScene::update() {
         getCamera().setFocusPointKeepingCameraLocation(glm::vec3(getCamera().getCameraLocation()[0] + radius * glm::cos(currentAngle),
                                                                  getCamera().getFocusPoint()[1],
                                                                  getCamera().getCameraLocation()[2] + radius * glm::sin(currentAngle)));
+        // TODO: make a Camera::rotate out of this
     }
 }
 
