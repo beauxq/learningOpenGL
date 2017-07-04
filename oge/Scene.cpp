@@ -189,6 +189,9 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     std::cout << "perp up: " << perpendicularUp << std::endl;
     perpendicularSide = glm::normalize(perpendicularSide);
     perpendicularUp = glm::normalize(perpendicularUp);
+    std::cout << "degrees: " << camera.getVerticalFieldOfView() / 2.0f << std::endl;
+    std::cout << "radians: " << glm::radians(camera.getVerticalFieldOfView() / 2.0f) << std::endl;
+    std::cout << "tan:     " << glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f)) << std::endl;
     float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f));
     // TODO: this seemed like it worked better when I gave it degrees instead of radians - investigate
     float distanceToSideOfFarClip = distanceToTopOfFarClip *
@@ -208,6 +211,8 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
         transformedCorners[i][0] = result[0];
         transformedCorners[i][1] = result[1];
         transformedCorners[i][2] = result[2];
+        // these debug messages produce code for a test in openScad
+        std::cout << "[" << result[0] << ", " << result[1] << ", " << result[2] << "],  // " << i << std::endl;
     }
     // test - TODO: remove this after lots of testing
     if (transformedCorners[5].x > 0.0001f || transformedCorners[5].y > 0.0001f || transformedCorners[5].z < -0.0001f) {
@@ -239,7 +244,7 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
         }
     }
 
-    std::cout << "found box: " << minX << ' ' << maxX << ' ' << minY << ' ' << maxY << ' ' << minZ << ' ' << maxZ << std::endl;
+    std::cout << "found box: " << minX << ", " << maxX << ", " << minY << ", " << maxY << ", " << minZ << ", " << maxZ << std::endl;
 
     return glm::ortho<float>(minX, maxX, minY, maxY, minZ, maxZ);
 
