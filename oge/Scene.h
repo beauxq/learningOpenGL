@@ -57,6 +57,8 @@ namespace oge {
         glm::vec3 lightInvDir;  // the direction from the scene to the light source
         glm::mat4 lightViewMatrix;
 
+        bool lightPOV;  // display from point of view of the light
+
         std::unordered_set< SceneObject, SceneObject::hash > objects;
 
         std::vector< glm::vec3 > sceneBounds;  // the furthest points away from the middle of the scene
@@ -92,6 +94,9 @@ namespace oge {
 
         Light& getLight();
         void setLight(const Light& _light);
+
+        void setLightPOV(const bool _lightPOV  /* default value true */);
+        const bool& getLightPOV() const;
 
         std::vector< glm::vec3 >& getSceneBounds();
         void setSceneBounds(std::vector< glm::vec3 >& bounds);

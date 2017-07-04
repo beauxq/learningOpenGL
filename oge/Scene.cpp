@@ -77,6 +77,14 @@ void oge::Scene::setLight(const Light& _light) {
     light = _light;
 }
 
+void oge::Scene::setLightPOV(const bool _lightPOV = true) {
+    lightPOV = _lightPOV;
+}
+
+const bool& oge::Scene::getLightPOV() const {
+    return lightPOV;
+}
+
 std::vector< glm::vec3 >& oge::Scene::getSceneBounds() {
     return sceneBounds;
 }
@@ -146,8 +154,13 @@ void oge::Scene::draw() {
         sf::Shader::bind(object.program);  // use the shader for this object
         // glUseProgram(programID);
 
-        object.object->draw(camera.getProjectionMatrix(), camera.getViewMatrix(), *(object.program));
-        // object.object->draw(projectionMatrix, viewMatrix, *(object.program));  // light pov
+        if (lightPOV) {
+            // use projection matrix and view matrix from the light's point of view
+            object.object->draw(projectionMatrix, viewMatrix, *(object.program));
+        }
+        else {
+            object.object->draw(camera.getProjectionMatrix(), camera.getViewMatrix(), *(object.program));
+        }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  // TODO: probably don't need this
 }

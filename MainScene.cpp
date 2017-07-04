@@ -127,4 +127,8 @@ void MainScene::handleEvent(const sf::Event &event) {
     oge::Scene::handleEvent(event);
 
     // scene events would go here
+
+    if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::L) {
+        setLightPOV(! getLightPOV());
+    }
 }
