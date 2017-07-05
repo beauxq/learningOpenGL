@@ -15,14 +15,14 @@ std::ostream& operator<< (std::ostream& out, const glm::vec3& vec) {
 
 const glm::vec4 oge::Scene::DEFAULT_BACKGROUND_COLOR = {0.18f, 0.0f, 0.4f, 0.0f};
 const std::vector< glm::vec3 > oge::Scene::DEFAULT_SCENE_BOUNDS = {
-    glm::vec3(20.0f, 20.0f, 20.0f),
-    glm::vec3(20.0f, 20.0f, -20.0f),
-    glm::vec3(20.0f, -20.0f, 20.0f),
-    glm::vec3(20.0f, -20.0f, -20.0f),
-    glm::vec3(-20.0f, 20.0f, 20.0f),
-    glm::vec3(-20.0f, 20.0f, -20.0f),
-    glm::vec3(-20.0f, -20.0f, 20.0f),
-    glm::vec3(-20.0f, -20.0f, -20.0f)
+    glm::vec3(30.0f, 30.0f, 30.0f),
+    glm::vec3(30.0f, 30.0f, -30.0f),
+    glm::vec3(30.0f, -30.0f, 30.0f),
+    glm::vec3(30.0f, -30.0f, -30.0f),
+    glm::vec3(-30.0f, 30.0f, 30.0f),
+    glm::vec3(-30.0f, 30.0f, -30.0f),
+    glm::vec3(-30.0f, -30.0f, 30.0f),
+    glm::vec3(-30.0f, -30.0f, -30.0f)
 };
 const glm::vec3 oge::Scene::DEFAULT_SCENE_CENTER = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -39,7 +39,8 @@ void oge::Scene::initialize() {
 
     // default camera settings  TODO: put defaults in constants
     // Projection matrix : 45° Field of View, aspect ratio, display range : 0.1 unit <-> 100 units
-    camera.setVerticalFieldOfView(45.0f);
+    // camera.setVerticalFieldOfView(45.0f);  // tutorial told me it was degrees, it's not
+    camera.setVerticalFieldOfView(0.785398f);  // 45 degrees
     //camera.setNearClip(0.1f);
     //camera.setFarClip(200.0f);
     // Or, for an ortho camera :
@@ -205,8 +206,7 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     std::cout << "degrees: " << camera.getVerticalFieldOfView() / 2.0f << std::endl;
     std::cout << "radians: " << glm::radians(camera.getVerticalFieldOfView() / 2.0f) << std::endl;
     std::cout << "tan:     " << glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f)) << std::endl;
-    float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f));
-    // TODO: this seemed like it worked better when I gave it degrees instead of radians - investigate
+    float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(camera.getVerticalFieldOfView() / 2.0f);
     float distanceToSideOfFarClip = distanceToTopOfFarClip *
                                     (float)system->getWindow().getSize().x /
                                     (float)system->getWindow().getSize().y;
@@ -217,8 +217,15 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     corners[5] = glm::vec3(light.getPosition().x, light.getPosition().y, light.getPosition().z);
     std::cout << "bottom two corners: " << corners[3] << "  /  " << corners[4] << std::endl;
 
+    //this section all for debugging
+    std::cout << "untransformed corners:\n";
+    for (size_t i = 0; i < 6; ++i) {
+        std::cout << "[" << corners[i][0] << ", " << corners[i][1] << ", " << corners[i][2] << "],  // " << i << std::endl;
+    }
+
     // transform them with light view matrix
     glm::vec3 transformedCorners[6];
+    std::cout << "transformed corners:\n";
     for (size_t i = 0; i < 6; ++i) {
         glm::vec4 result = lightViewMatrix * glm::vec4(corners[i], 1.0f);
         transformedCorners[i][0] = result[0];
