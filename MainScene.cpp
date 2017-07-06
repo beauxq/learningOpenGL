@@ -121,6 +121,19 @@ void MainScene::initialize() {
     }));
     background.uploadData();
     registerObject(background, getSystem()->getTextureProgram());
+
+    // set scene bounds to include the background
+    std::vector<glm::vec3> _sceneBounds = {
+        glm::vec3(100.0f, 70.0f, 30.0f),
+        glm::vec3(100.0f, 70.0f, -30.0f),
+        glm::vec3(100.0f, -70.0f, 30.0f),
+        glm::vec3(100.0f, -70.0f, -30.0f),
+        glm::vec3(-100.0f, 70.0f, 30.0f),
+        glm::vec3(-100.0f, 70.0f, -30.0f),
+        glm::vec3(-100.0f, -70.0f, 30.0f),
+        glm::vec3(-100.0f, -70.0f, -30.0f)
+    };
+    setSceneBounds(_sceneBounds);
 }
 
 void MainScene::handleEvent(const sf::Event &event) {

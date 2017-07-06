@@ -123,8 +123,9 @@ void oge::Scene::handleEvent(const sf::Event& event) {
 }
 
 void oge::Scene::draw() {
-    // create shadow map
+    // TODO: test light inside the camera projection
 
+    // create shadow map
     glBindFramebuffer(GL_FRAMEBUFFER, system->FramebufferName);
     glViewport(0,0,1024,1024);  // TODO: magic numbers
 
