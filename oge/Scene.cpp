@@ -1,6 +1,7 @@
 // implementation of Scene class
 
 #include <iostream>
+#include <sstream>
 #include "Scene.h"
 
 #include "OGLObject.h"
@@ -9,8 +10,15 @@
 #include "../glm/gtx/vector_angle.hpp"
 
 // for debugging
-std::ostream& operator<< (std::ostream& out, const glm::vec3& vec) {
-    return out << vec[0] << ' ' << vec[1] << ' ' << vec[2];
+#define VERBOSE
+#ifdef VERBOSE
+    #define log(out)  std::cout << out << std::endl;
+#else
+    #define log(out)  ;
+#endif
+
+std::string glm_to_string(const glm::vec3& vec) {
+    return std::to_string(vec[0]) + ' ' + std::to_string(vec[1]) + ' ' + std::to_string(vec[2]);
 }
 
 const glm::vec4 oge::Scene::DEFAULT_BACKGROUND_COLOR = {0.18f, 0.0f, 0.4f, 0.0f};
@@ -193,20 +201,20 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     glm::vec3 corners[6];
     corners[0] = camera.getCameraLocation();
     glm::vec3 cameraDirection = camera.getDirection();
-    std::cout << "direction got from camera: " << cameraDirection << std::endl;
+    log("direction got from camera: " + glm_to_string(cameraDirection));
     glm::vec3 middleOfFarClip = corners[0] + camera.getFarClip() * glm::normalize(cameraDirection);
-    std::cout << "middle of far clip: " << middleOfFarClip << std::endl;
+    log("middle of far clip: " + glm_to_string(middleOfFarClip));
     glm::vec3 perpendicularSide(crossVec(cameraDirection, camera.getUpDirection()));
     // ^ perpendicular to both camera direction and up
-    std::cout << "perpendicular side: " << perpendicularSide << std::endl;
+    log("perpendicular side: " + glm_to_string(perpendicularSide));
     glm::vec3 perpendicularUp(crossVec(perpendicularSide, cameraDirection));
     // ^ this might be down, but we're going to go both directions, so it doesn't matter if it's up or down
-    std::cout << "perp up: " << perpendicularUp << std::endl;
+    log("perp up: " + glm_to_string(perpendicularUp));
     perpendicularSide = glm::normalize(perpendicularSide);
     perpendicularUp = glm::normalize(perpendicularUp);
-    std::cout << "degrees: " << camera.getVerticalFieldOfView() / 2.0f << std::endl;
-    std::cout << "radians: " << glm::radians(camera.getVerticalFieldOfView() / 2.0f) << std::endl;
-    std::cout << "tan:     " << glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f)) << std::endl;
+    log("degrees: " + std::to_string(camera.getVerticalFieldOfView() / 2.0f));
+    log("radians: " + std::to_string(glm::radians(camera.getVerticalFieldOfView() / 2.0f)));
+    log("tan:     " + std::to_string(glm::tan(glm::radians(camera.getVerticalFieldOfView() / 2.0f))));
     float distanceToTopOfFarClip = camera.getFarClip() * glm::tan(camera.getVerticalFieldOfView() / 2.0f);
     float distanceToSideOfFarClip = distanceToTopOfFarClip *
                                     (float)system->getWindow().getSize().x /
@@ -216,31 +224,31 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
     corners[3] = middleOfFarClip - distanceToTopOfFarClip * perpendicularUp + distanceToSideOfFarClip * perpendicularSide;
     corners[4] = middleOfFarClip - distanceToTopOfFarClip * perpendicularUp - distanceToSideOfFarClip * perpendicularSide;
     corners[5] = glm::vec3(light.getPosition().x, light.getPosition().y, light.getPosition().z);
-    std::cout << "bottom two corners: " << corners[3] << "  /  " << corners[4] << std::endl;
+    log("bottom two corners: " + glm_to_string(corners[3]) + "  /  " + glm_to_string(corners[4]));
 
     //this section all for debugging
-    std::cout << "untransformed corners:\n";
+    log("untransformed corners:");
     for (size_t i = 0; i < 6; ++i) {
-        std::cout << "[" << corners[i][0] << ", " << corners[i][1] << ", " << corners[i][2] << "],  // " << i << std::endl;
+        log("[" + std::to_string(corners[i][0]) + ", " + std::to_string(corners[i][1]) + ", " + std::to_string(corners[i][2]) + "],  // " + std::to_string(i));
     }
 
     // transform them with light view matrix
     glm::vec3 transformedCorners[6];
-    std::cout << "transformed corners:\n";
+    log("transformed corners:");
     for (size_t i = 0; i < 6; ++i) {
         glm::vec4 result = lightViewMatrix * glm::vec4(corners[i], 1.0f);
         transformedCorners[i][0] = result[0];
         transformedCorners[i][1] = result[1];
         transformedCorners[i][2] = result[2];
         // these debug messages produce code for a test in openScad
-        std::cout << "[" << result[0] << ", " << result[1] << ", " << result[2] << "],  // " << i << std::endl;
+        log("[" + std::to_string(result[0]) + ", " + std::to_string(result[1]) + ", " + std::to_string(result[2]) + "],  // " + std::to_string(i));
     }
     // test - TODO: remove this after lots of testing
     if (transformedCorners[5].x > 0.0001f || transformedCorners[5].y > 0.0001f || transformedCorners[5].z < -0.0001f) {
         std::cerr << "warning: light location transformed to light space isn't 0: "
                   << transformedCorners[5].x << ' ' << transformedCorners[5].y << ' ' << transformedCorners[5].z << std::endl;
     }
-    std::cout << "bot 2 corners after transform: " << transformedCorners[3] << "  /  " << transformedCorners[4] << std::endl;
+    log("bot 2 corners after transform: " + glm_to_string(transformedCorners[3]) + "  /  " + glm_to_string(transformedCorners[4]));
 
     // make a box that includes all those points
     float maxX = 0, minX = 0, maxY = 0, minY = 0, maxZ = 0, minZ = 0;
@@ -265,7 +273,7 @@ glm::mat4 oge::Scene::getLightProjectionMatrix() const {
         }
     }
 
-    std::cout << "found box: " << minX << ", " << maxX << ", " << minY << ", " << maxY << ", " << minZ << ", " << maxZ << std::endl;
+    log("found box: " + std::to_string(minX) + ", " + std::to_string(maxX) + ", " + std::to_string(minY) + ", " + std::to_string(maxY) + ", " + std::to_string(minZ) + ", " + std::to_string(maxZ));
 
     return glm::ortho<float>(minX, maxX, minY, maxY, minZ, maxZ);
 
